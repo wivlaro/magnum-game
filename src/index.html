@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Name Picker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    #canvas {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+        max-height: 100%;
+    }
+    #container {
+        max-height: 100%;
+    }
+    body { background: black; color:white;}
+  </style>
+</head>
+<body>
+<div id="container">
+    <canvas id="canvas"></canvas>
+    <div id="status">Initialization...</div>
+    <div id="status-description"></div>
+    <script src="EmscriptenApplication.js"></script>
+    <script async="async" src="NamePickerApp.js"></script>
+</div>
+</body>
+</html>
