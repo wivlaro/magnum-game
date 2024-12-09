@@ -5,9 +5,13 @@
 #include "Player.h"
 
 namespace MagnumGame {
-    GameState::GameState() {
+    GameState::GameState(Timeline& timeline) : _timeline(timeline) {
         _bSphereQueryObject.setCollisionShape(&_bSphereQueryShape);
 
+    }
+
+    void GameState::setupPlayer(RigidBody *rigidBody, Animator *animator) {
+        _player = std::make_unique<Player>("Someone", rigidBody, animator);
     }
 
     // void GameState::doPlayerShoot(Player &player) {
@@ -56,7 +60,9 @@ namespace MagnumGame {
 
     void GameState::update() {
 
-        _player->update();
-    }
+        auto dt = _timeline.previousFrameDuration();
 
+
+        _player->update(dt);
+    }
 }

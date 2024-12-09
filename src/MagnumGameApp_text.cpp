@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iomanip>
 #include <sstream>
 #include <Corrade/PluginManager/Manager.h>
 #include <Corrade/Utility/Path.h>
@@ -16,6 +17,7 @@
 #include "MagnumGameApp.h"
 #include "Player.h"
 #include "Tweakables.h"
+#include "OnGroundQuery.h"
 
 namespace MagnumGame {
 
@@ -24,6 +26,8 @@ namespace MagnumGame {
     static float fontOutlineEnd = 0.4f;
     static float fontLargeSize = 40.0f;
     static float fontSmallSize = 20.0f;
+
+
 
     void MagnumGameApp::setupTextRenderer() {
         if (auto fontDir = findDirectory("font")) {
@@ -64,6 +68,29 @@ namespace MagnumGame {
         });
     }
 
+    inline std::ostream& operator<<(std::ostream& o, const btVector3& vec) {
+        o << vec.x() << "," << vec.y() << "," << vec.z();
+        return o;
+    }
+    template<typename T, size_t N>
+    std::ostream& operator<<(std::ostream& o, const Magnum::Math::Vector<N,T>& vec) {
+        for (size_t i = 0; i < N; ++i) {
+            if (i) {
+                o << ",";
+            }
+            o << vec[i];
+        }
+        return o;
+    }
+
+
+    Vector2 MagnumGameApp::getPlayerControlVector() {
+        return {
+            ((controllerKeysHeld&KEY_RIGHT)?1.0f:0.0f) - ((controllerKeysHeld&KEY_LEFT)?1.0f:0.0f),
+            ((controllerKeysHeld&KEY_FORWARD)?1.0f:0.0f) - ((controllerKeysHeld&KEY_BACKWARD)?1.0f:0.0f),
+        };
+    }
+
     void MagnumGameApp::renderGameStatusText() {
         Matrix3 textMatrix{Math::IdentityInit};
         if (false) {
@@ -72,10 +99,26 @@ namespace MagnumGame {
             textMatrix = Matrix3::translation(Vector2{windowSize()} * Vector2{0.f, 0.f});
         }
         else {
-            auto playersAliveString = "Status: ...?";
+            std::ostringstream oss;
+
+            if (_playerBody) {
+                auto& rigidBody = _playerBody->rigidBody();
+                oss << std::setprecision(5);
+                oss << std::fixed;
+                // oss << "F=" << rigidBody.getTotalForce() + rigidBody.getGravity() << "\n";
+                // oss << "V=" << rigidBody.getLinearVelocity();
+
+                oss << "Control " << getPlayerControlVector();
+                auto onGround = OnGroundQueryResult{rigidBody}.run(_bWorld);
+
+                oss << (onGround ? "Grounded" : "Not grounded");
+            }
+            else {
+                oss << "No player";
+            }
             std::tie(_textMesh, std::ignore) =
-                    Text::Renderer2D::render(*_font, _fontGlyphCache, fontSmallSize, playersAliveString, _textVertexBuffer, _textIndexBuffer, GL::BufferUsage::DynamicDraw, Text::Alignment::TopRight);
-            textMatrix = Matrix3::translation(Vector2{windowSize()}*Vector2{0.45f, 0.45f});
+                    Text::Renderer2D::render(*_font, _fontGlyphCache, fontSmallSize, oss.str(), _textVertexBuffer, _textIndexBuffer, GL::BufferUsage::DynamicDraw, Text::Alignment::TopLeft);
+            textMatrix = Matrix3::translation(Vector2{windowSize()}*Vector2{-0.45f, 0.45f});
         }
 
         renderTextBuffer(textMatrix, 0x2f83cc_rgbf, 0xdcdcdc_rgbf, _textMesh);

@@ -65,16 +65,25 @@ namespace MagnumGame {
         ///In bullet physics, we use UserIndex1 to say what kind of data is stored in the next index - we only have player indices for now
         static constexpr int World_UserIndex1_Player = 1;
 
-
         static Containers::Optional<Containers::String> findDirectory(Containers::StringView dirName);
+
+        enum ControllerKeys {
+            KEY_FORWARD = 1,
+            KEY_BACKWARD = 2,
+            KEY_LEFT = 4,
+            KEY_RIGHT = 8,
+        };
 
     private:
         void drawEvent() override;
 
         void keyPressEvent(KeyEvent &event) override;
+        void keyReleaseEvent(KeyEvent &event) override;
         void mousePressEvent(MouseEvent &event) override;
         void mouseReleaseEvent(MouseEvent &event) override;
         void mouseMoveEvent(MouseMoveEvent &event) override;
+
+        void anyEvent(SDL_Event &event) override;
 
         GL::Framebuffer _framebuffer{NoCreate};
         GL::Renderbuffer _color{NoCreate}, _objectId{NoCreate}, _depth{NoCreate};
@@ -143,10 +152,13 @@ namespace MagnumGame {
         bool _drawDebug{false};
 
         std::unique_ptr<Tweakables> _tweakables;
-        Object3D* _player;
+        RigidBody* _playerBody;
         Animator* _playerAnimator;
 
-        Containers::Pair<Object3D*, Animator*> loadAnimatedModel(Trade::AbstractImporter &pointer, Containers::StringView fileName);
+        int controllerKeysHeld;
+
+        Containers::Pair<RigidBody *, Animator *> loadAnimatedModel(Trade::AbstractImporter &pointer,
+                                                                    Containers::StringView fileName);
 
         void setup();
 
@@ -155,6 +167,8 @@ namespace MagnumGame {
         void renderDebug();
 
         void renderDebugText();
+
+        Vector2 getPlayerControlVector();
 
         void renderGameStatusText();
 
@@ -173,4 +187,6 @@ namespace MagnumGame {
         ///For object picking, where do the players start
         static constexpr int PlayerIdOffset = 16;
     };
+
+
 }

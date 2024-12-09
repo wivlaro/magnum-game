@@ -189,6 +189,21 @@ namespace MagnumGame {
             .clearDepth(1.0f)
             .bind();
 
+
+        Vector2 controlVector = getPlayerControlVector();
+
+        Vector3 cameraControlVector;
+        if (!controlVector.isZero()) {
+            cameraControlVector = _cameraObject->absoluteTransformationMatrix().transformVector({ controlVector.x(), 0, -controlVector.y() });
+            cameraControlVector.y() = 0;
+            cameraControlVector = cameraControlVector.normalized();
+        }
+        else {
+            cameraControlVector = {};
+        }
+        _gameState->getPlayer()->setControl(cameraControlVector);
+
+
         _gameState->update();
 
 

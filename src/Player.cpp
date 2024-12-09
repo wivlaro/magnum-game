@@ -12,10 +12,11 @@
 
 namespace MagnumGame {
 
-    Player::Player(const std::string &name, RigidBody *pBody, IEnableDrawable *bodyDrawable)
-        : _name(name), _pBody(pBody), _pBodyDrawable(bodyDrawable){
-    }
 
+
+    Player::Player(const std::string &name, RigidBody *pBody, Animator *animator)
+        : _name(name), _pBody(pBody), _animator(animator), _pBodyDrawable{} {
+    }
 
     void Player::resetToStart(const Matrix4 &transformation) {
         // _pBody->rigidBody().setAngularVelocity({}); // Set angular velocity causes crashes... for some reason
@@ -28,11 +29,25 @@ namespace MagnumGame {
 
     bool Player::isAlive() const { return _pBody->rigidBody().isInWorld(); }
 
-    void Player::update() {
+    void Player::update(Float deltaTime) {
 
+        if (!_control.isZero()) {
+            auto motion = _control * WalkSpeed * deltaTime;
+            auto position = _pBody->transformation().translation();
+
+            auto matrix = Matrix4::lookAt({0,0,0}, -_control, {0,1,0});
+            matrix.translation() = position + motion;
+
+            _pBody->setTransformation(matrix);
+            _pBody->syncPose();
+        }
     }
 
     Vector3 Player::getPosition() const { return _pBody->transformation().translation(); }
+
+    void Player::setControl(const Vector3 &control) {
+        _control = control;
+    }
 
     void Player::die() {
         _pBody->removeFromWorld();

@@ -38,18 +38,26 @@ namespace MagnumGame {
 
         void play(const Containers::StringView& animationName);
 
+        void setDefaultAnimation(const Containers::StringView& animationName);
+
         void addAnimation(const Containers::String &string, AnimationPlayer &&player);
 
     private:
-        BoneScene _boneScene{};
-        SceneGraph::Camera3D _fakeBoneCamera;
+        //Animation asset data
         std::vector<GL::Mesh> _meshes{};
         std::vector<GL::Texture2D> _textures{};
         std::vector<Skin> _skins{};
+        Containers::Array<Containers::Array<char>> _animationData;
+
+        //Animation state data
+        BoneScene _boneScene{};
+        SceneGraph::Camera3D _fakeBoneCamera;
         SceneGraph::DrawableGroup3D _jointDrawables{};
 
-        std::unordered_map<Containers::String, AnimationPlayer> _animations{};
         AnimationPlayer* _currentAnimation{};
+        Containers::String _defaultAnimationName;
+
+        std::unordered_map<Containers::String, AnimationPlayer> _animations{};
     };
 
 

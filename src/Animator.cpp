@@ -213,6 +213,10 @@ namespace MagnumGame {
                             break;
                     }
                 }
+
+                player.setDuration(animationData->duration());
+                player.setPlayCount(0);
+                arrayAppend(_animationData, animation.release());
             }
         }
     }

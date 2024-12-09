@@ -40,17 +40,18 @@ namespace MagnumGame {
 
         setupTextRenderer();
 
-
         auto gltfImporter = manager.loadAndInstantiate("GltfImporter");
         assert(gltfImporter);
         _models = std::make_unique<GameModels>(*gltfImporter);
 
         auto loadedModel = loadAnimatedModel(*gltfImporter, "characters/character-female-b.glb");
-        _player = loadedModel.first();
+        _playerBody = loadedModel.first();
         _playerAnimator = loadedModel.second();
         loadLevel(*gltfImporter);
+        _playerBody->translate({0,1,0});
 
-        _gameState = std::make_unique<GameState>();
+        _gameState = std::make_unique<GameState>(_timeline);
+        _gameState->setupPlayer(_playerBody, _playerAnimator);
 
         _playerAnimator->play("idle");
     }
@@ -79,7 +80,7 @@ namespace MagnumGame {
     }
 
 
-    Containers::Pair<Object3D*, Animator*> MagnumGameApp::loadAnimatedModel(Trade::AbstractImporter &importer, Containers::StringView fileName) {
+    Containers::Pair<RigidBody *, Animator *> MagnumGameApp::loadAnimatedModel( Trade::AbstractImporter &importer, Containers::StringView fileName) {
 
         if (auto modelsDir = findDirectory("models")) {
             auto filePath = Utility::Path::join(*modelsDir, fileName);
@@ -89,6 +90,7 @@ namespace MagnumGame {
             }
             if (importer.sceneCount() == 0) {
                 Error{} << "No scene found in" << filePath;
+                importer.close();
                 return {};
             }
             if (importer.sceneCount() > 1) {
@@ -96,8 +98,17 @@ namespace MagnumGame {
             }
         }
 
-        auto& rootObject = _scene.addChild<Object3D>();
-        auto& animator = rootObject.addFeature<Animator>(importer, _animatedTexturedShader, &_animatorDrawables, &_drawables);
+
+        auto& rootObject = _scene.addChild<RigidBody>(1.0f, &_models->getPlayerShape(), _bWorld, RigidBody::CollisionLayer::Dynamic);
+        auto& animationOffset = rootObject.addChild<Object3D>();
+        animationOffset.setTransformation(Matrix4::translation({0, -0.4f, 0}));
+        auto& animator = animationOffset.addFeature<Animator>(importer, _animatedTexturedShader, &_animatorDrawables, &_drawables);
+
+        //Prevent rotation in X & Z
+        rootObject.rigidBody().setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
+
+
+        importer.close();
         return {&rootObject, &animator};
     }
 
@@ -204,7 +215,8 @@ namespace MagnumGame {
 
                     auto mesh = _levelMeshes[meshId].get();
                     auto shape = _meshToShapeMap[mesh];
-                    auto &rigidBody = _scene.addChild<RigidBody>(0.0f, shape, _bWorld);
+                    auto &rigidBody = _scene.addChild<RigidBody>(0.0f, shape, _bWorld, RigidBody::CollisionLayer::Terrain);
+
 
                     if (auto matrix = sceneData->transformation3DFor(objectId)) {
                         rigidBody.setTransformation(*matrix);

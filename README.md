@@ -30,8 +30,9 @@ Open the project in CLion, and copy the cmake options from [build-release.sh](bu
 
 ## TO DO
 
-* Strip the old name picker code
-* Load environment model
-* Load animated player model
-* Movement controls
+* WASD Movement
+* Animation while moving
+* Mouse camera turning
+* Turn character to be in camera direction on move
+* Allow jump only when touching a surface
 * Shadow caster/receiver drawables

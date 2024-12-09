@@ -5,8 +5,10 @@
 #include <Magnum/GL/PixelFormat.h>
 #include <Magnum/GL/Framebuffer.h>
 #include <Magnum/Image.h>
+#include <SDL_events.h>
 
 #include "GameState.h"
+#include "OnGroundQuery.h"
 #include "Tweakables.h"
 
 namespace MagnumGame {
@@ -21,11 +23,27 @@ namespace MagnumGame {
         // } else if (event.key() == Key::X) {
         //     _gameState->_allowDeath = !_gameState->_allowDeath;
         //     event.setAccepted();
-        } else if (event.key() == Key::D) {
+        } else if (event.key() == Key::X) {
             _drawDebug = !_drawDebug;
             event.setAccepted();
+        } else if (event.key() == Key::W) {
+            controllerKeysHeld |= ControllerKeys::KEY_FORWARD;
+            event.setAccepted();
+        } else if (event.key() == Key::S) {
+            controllerKeysHeld |= ControllerKeys::KEY_BACKWARD;
+            event.setAccepted();
+        } else if (event.key() == Key::A) {
+            controllerKeysHeld |= ControllerKeys::KEY_LEFT;
+            event.setAccepted();
+        } else if (event.key() == Key::D) {
+            controllerKeysHeld |= ControllerKeys::KEY_RIGHT;
+            event.setAccepted();
         } else if (event.key() == Key::Space) {
-            _gameState->start();
+
+            if (OnGroundQueryResult{_playerBody->rigidBody()}.run(_bWorld)) {
+                _playerBody->rigidBody().applyImpulse({0,4.0f,0},{});
+            }
+
             event.setAccepted();
         } else {
             auto &debugMode = _tweakables->currentDebugMode();
@@ -50,6 +68,22 @@ namespace MagnumGame {
                     event.setAccepted();
                 }
             }
+        }
+    }
+
+    void MagnumGameApp::keyReleaseEvent(KeyEvent &event) {
+        if (event.key() == Key::W) {
+            controllerKeysHeld &= ~ControllerKeys::KEY_FORWARD;
+            event.setAccepted();
+        } else if (event.key() == Key::S) {
+            controllerKeysHeld &= ~ControllerKeys::KEY_BACKWARD;
+            event.setAccepted();
+        } else if (event.key() == Key::A) {
+            controllerKeysHeld &= ~ControllerKeys::KEY_LEFT;
+            event.setAccepted();
+        } else if (event.key() == Key::D) {
+            controllerKeysHeld &= ~ControllerKeys::KEY_RIGHT;
+            event.setAccepted();
         }
     }
 
@@ -99,6 +133,12 @@ namespace MagnumGame {
         // _gameState->playerClicked(objectId - PlayerIdOffset);
 
         event.setAccepted();
+    }
+
+    void MagnumGameApp::anyEvent(SDL_Event &event) {
+        if (event.type == SDL_WINDOWEVENT_FOCUS_LOST) {
+            controllerKeysHeld = 0;
+        }
     }
 
 }

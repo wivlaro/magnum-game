@@ -12,13 +12,19 @@ namespace MagnumGame {
 
     class GameState {
     public:
-        GameState();
+        GameState(Timeline& timeline);
 
         void start();
         void update();
 
+        void setupPlayer(RigidBody * rigid_body, Animator * animator);
+
+        Player* getPlayer() const { return _player.get(); }
+
     private:
+        Timeline& _timeline;
         std::unique_ptr<Player> _player;
+
         bool _isStarted = false;
 
         btSphereShape _bSphereQueryShape{0.4f};
