@@ -144,41 +144,7 @@ namespace MagnumGame {
     }
 
 
-    void MagnumGameApp::updateCameraExtents() {
-        if (_pointerDrag) {
-            _cameraVelocity = {};
-            _cameraAngularVelocity = {};
-            return;
-        }
 
-        // if (auto extents = _gameState->computePlayerExtents()) {
-        //
-        //     //Move the camera to frame the players
-        //
-        //     auto avePosition = (extents->first() + extents->second()) * 0.5f;
-        //     auto cameraMatrix = _cameraObject->transformation();
-        //     auto cameraPosition = cameraMatrix.translation();
-        //
-        //     //Given the camera FoV, calculate theoretical perfect distance to frame the players
-        //     auto targetCameraDistance = Math::max(cameraMinDistance, (extents->second() - extents->first()).length() * 0.5f / Math::tan(_cameraFieldOfView / 2.0f));
-        //     auto targetCameraPosition = avePosition + Vector3::yAxis(targetCameraDistance);
-        //
-        //     auto targetCameraVelocity = (targetCameraPosition - cameraPosition) * cameraCorrectionSpeed;
-        //     auto targetCameraRotation = _cameraDefaultRotation;
-        //     _cameraVelocity += (targetCameraVelocity - _cameraVelocity) * cameraCorrectionAcceleration * _timeline.previousFrameDuration();
-        //     auto cameraRotation = Quaternion::fromMatrix(cameraMatrix.rotation()).normalized();
-        //
-        //     cameraPosition += _cameraVelocity * _timeline.previousFrameDuration();
-        //
-        //     //Rotation is not part of usual business in this game, so a simple spherical interpolation without fancy timing is ok.
-        //     auto newCameraRotation = slerp(cameraRotation, targetCameraRotation, 0.01f);
-        //
-        //     cameraMatrix = Matrix4::from(newCameraRotation.toMatrix(), cameraPosition);
-        //     //Set up the near/far to be appropriate for the distance to the players (not accounting for rotation at all)
-        //     _camera->setProjectionMatrix(Matrix4::perspectiveProjection(_cameraFieldOfView, 1.0f, std::max(0.1f, cameraPosition.y() * 0.5f), std::max(10.0f,cameraPosition.y()*1.5f)));
-        //     _cameraObject->setTransformation(cameraMatrix);
-        // }
-    }
 
 
     void MagnumGameApp::drawEvent() {
@@ -206,10 +172,11 @@ namespace MagnumGame {
 
         _gameState->update();
 
-
-        updateCameraExtents();
-
         _bWorld.stepSimulation(_timeline.previousFrameDuration(), 5);
+
+        if (_trackingCamera) {
+            _trackingCamera->update(_timeline.previousFrameDuration());
+        }
 
         _camera->draw(_animatorDrawables);
 

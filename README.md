@@ -30,9 +30,11 @@ Open the project in CLion, and copy the cmake options from [build-release.sh](bu
 
 ## TO DO
 
-* WASD Movement
-* Animation while moving
-* Mouse camera turning
-* Turn character to be in camera direction on move
-* Allow jump only when touching a surface
+* Model lighting correct when model skinned/rotated
 * Shadow caster/receiver drawables
+* Menu / game system
+* Try faster Freetype lib where available
+* Refactor - loaded animated model assets separate from animator
+* Refactor - Game state - move all scenegraph code in there
+* Platform support - Emscripten 
+* Platform support - Mobile? 

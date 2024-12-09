@@ -36,7 +36,7 @@ namespace MagnumGame {
 
         void draw(const Matrix4 &transformationMatrix, SceneGraph::Camera3D &camera) override;
 
-        void play(const Containers::StringView& animationName);
+        void play(const Containers::StringView& animationName, bool restart);
 
         void setDefaultAnimation(const Containers::StringView& animationName);
 
