@@ -19,9 +19,11 @@ namespace MagnumGame {
 
     public:
 
-        Player(const std::string &name, RigidBody *pBody, IEnableDrawable* bodyDrawable);
+        inline static Float WalkSpeed = 1.0f;
 
-        void update();
+        Player(const std::string &name, RigidBody *pBody, Animator* animator);
+
+        void update(Float deltaTime);
 
         Vector3 getPosition() const;
 
@@ -31,6 +33,8 @@ namespace MagnumGame {
 
         btVector3 hitPosition() const;
 
+        void setControl(const Vector3& control);
+
         void die();
         void revive();
 
@@ -38,10 +42,13 @@ namespace MagnumGame {
 
         btDynamicsWorld& getWorld();
 
+
     private:
         std::string _name;
         RigidBody *_pBody;
-        IEnableDrawable *_pBodyDrawable;
+        Animator *_animator;
+        IEnableDrawable *_pBodyDrawable{};
+        Vector3 _control{};
     };
 
 }

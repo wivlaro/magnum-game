@@ -7,7 +7,8 @@
 #include <Magnum/BulletIntegration/MotionState.h>
 
 namespace MagnumGame {
-    RigidBody::RigidBody(Float mass, btCollisionShape *bShape, btDynamicsWorld &bWorld): Object3D{nullptr},
+
+    RigidBody::RigidBody(Float mass, btCollisionShape *bShape, btDynamicsWorld &bWorld, CollisionLayer layer): Object3D{nullptr},
         _bWorld(bWorld) {
         /* Calculate inertia so the object reacts as it should with
                rotation and everything */
@@ -22,7 +23,7 @@ namespace MagnumGame {
         _bRigidBody.emplace(btRigidBody::btRigidBodyConstructionInfo{
             mass, &motionState->btMotionState(), bShape, bInertia});
         _bRigidBody->forceActivationState(DISABLE_DEACTIVATION);
-        bWorld.addRigidBody(_bRigidBody.get());
+        bWorld.addRigidBody(_bRigidBody.get(), getLayerGroupMask(layer), getLayerCollisionMask(layer));
     }
 
     RigidBody::~RigidBody() {
