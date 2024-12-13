@@ -99,7 +99,7 @@ namespace MagnumGame {
     }
 
     void MagnumGameApp::pointerMoveEvent(PointerMoveEvent &event) {
-        if (event.pointer() == Pointer::MouseLeft || event.pointer() == Pointer::Finger) {
+        if (event.pointers() & (Pointer::MouseLeft | Pointer::Finger)) {
             auto eventPosDelta = event.relativePosition();
             if (eventPosDelta.dot() > 4) {
                 _pointerDrag = true;
