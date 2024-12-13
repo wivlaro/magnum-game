@@ -19,7 +19,7 @@ namespace MagnumGame {
 
     public:
 
-        inline static Float WalkSpeed = 1.0f;
+        inline static Float WalkSpeed = 4.0f;
 
         Player(const std::string &name, RigidBody *pBody, Animator* animator);
 

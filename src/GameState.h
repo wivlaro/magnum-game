@@ -22,7 +22,7 @@ namespace MagnumGame {
         Player* getPlayer() const { return _player.get(); }
 
     private:
-        Timeline& _timeline;
+        const Timeline& _timeline;
         std::unique_ptr<Player> _player;
 
         bool _isStarted = false;

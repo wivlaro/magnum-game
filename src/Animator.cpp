@@ -237,15 +237,19 @@ namespace MagnumGame {
         _fakeBoneCamera.draw(_jointDrawables);
     }
 
-    void Animator::play(const Containers::StringView &animationName) {
-        if (_currentAnimation) {
-            _currentAnimation->stop();
-        }
+    void Animator::play(const Containers::StringView &animationName, bool restart) {
         auto animIt = _animations.find(animationName);
         if (animIt == _animations.end()) {
             Warning{} << "Can't find animation" << animationName;
-            _currentAnimation = nullptr;
             return;
+        }
+
+        if (!restart && &animIt->second == _currentAnimation) {
+            return;
+        }
+
+        if (_currentAnimation) {
+            _currentAnimation->stop();
         }
         _currentAnimation = &_animations[animationName];
         _currentAnimation = &animIt->second;

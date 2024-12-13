@@ -44,6 +44,8 @@ add_executable(MagnumGameApp MagnumGameApp.cpp
         GameModels.h
         Animator.cpp
         Animator.h
+        TrackingCamera.cpp
+        TrackingCamera.h
 )
 target_link_libraries(MagnumGameApp PRIVATE
         Corrade::Main

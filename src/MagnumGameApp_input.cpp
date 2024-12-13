@@ -95,12 +95,14 @@ namespace MagnumGame {
 
     void MagnumGameApp::mouseMoveEvent(MouseMoveEvent &event) {
         if (event.buttons() & MouseMoveEvent::Button::Left) {
-            if (event.relativePosition().dot() > 4) {
+            auto eventPosDelta = event.relativePosition();
+            if (eventPosDelta.dot() > 4) {
                 _pointerDrag = true;
             }
-            if (_pointerDrag) {
-                _cameraObject->rotateX(-1.0_degf*event.relativePosition().y())
-                        .rotateY(-1.0_degf*event.relativePosition().x());
+            if (_pointerDrag && _trackingCamera) {
+                auto delta_yaw = 1.0_degf * eventPosDelta.x();
+                auto delta_pitch = 1.0_degf * eventPosDelta.y();
+                _trackingCamera->rotateBy(delta_yaw, delta_pitch);
             }
         }
 

@@ -46,7 +46,18 @@ namespace MagnumGame {
     Vector3 Player::getPosition() const { return _pBody->transformation().translation(); }
 
     void Player::setControl(const Vector3 &control) {
-        _control = control;
+        if (_control != control) {
+            _control = control;
+
+            if (_animator != nullptr) {
+                if (_control.isZero()) {
+                    _animator->play("idle", false);
+                }
+                else {
+                    _animator->play("walk", false);
+                }
+            }
+        }
     }
 
     void Player::die() {

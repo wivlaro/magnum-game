@@ -37,6 +37,7 @@
 #include "Animator.h"
 #include "MagnumGameCommon.h"
 #include "RigidBody.h"
+#include "TrackingCamera.h"
 
 namespace MagnumGame {
     class GameState;
@@ -137,14 +138,13 @@ namespace MagnumGame {
         Scene3D _scene;
         SceneGraph::Camera3D *_camera;
         Deg _cameraFieldOfView{35.0_degf};
-        Vector3 _cameraVelocity;
-        Quaternion _cameraAngularVelocity;
         SceneGraph::DrawableGroup3D _drawables{};
         SceneGraph::DrawableGroup3D _animatorDrawables{};
         SceneGraph::DrawableGroup3D _transparentDrawables{};
         Timeline _timeline;
 
         Object3D *_cameraObject;
+        Containers::Pointer<TrackingCamera> _trackingCamera;
 
         bool _pointerDrag;
         Quaternion _cameraDefaultRotation;
@@ -162,7 +162,6 @@ namespace MagnumGame {
 
         void setup();
 
-        void updateCameraExtents();
 
         void renderDebug();
 

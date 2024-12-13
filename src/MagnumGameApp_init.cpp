@@ -50,10 +50,14 @@ namespace MagnumGame {
         loadLevel(*gltfImporter);
         _playerBody->translate({0,1,0});
 
+        _trackingCamera.emplace(*_cameraObject);
+
         _gameState = std::make_unique<GameState>(_timeline);
         _gameState->setupPlayer(_playerBody, _playerAnimator);
 
-        _playerAnimator->play("idle");
+        _trackingCamera->setupTargetFromCurrent(*_playerBody);
+
+        _playerAnimator->play("idle", false);
     }
 
 
