@@ -10,6 +10,7 @@ mkdir -p emscripten-dependencies-src && cd emscripten-dependencies-src
 test -d corrade || git clone --depth 1 https://github.com/mosra/corrade.git
 (
 	cd corrade
+	git pull
 
 	# Build native corrade-rc
 	mkdir -p build && cd build || exit /b
@@ -73,6 +74,7 @@ tar -xzf 2.87.tar.gz && (
 test -d magnum || git clone https://github.com/mosra/magnum.git
 (
 	cd magnum
+	git pull
 	mkdir -p build-emscripten && cd build-emscripten
 	cmake .. \
 		-DCMAKE_TOOLCHAIN_FILE="../../toolchains/generic/Emscripten-wasm.cmake" \
@@ -81,8 +83,9 @@ test -d magnum || git clone https://github.com/mosra/magnum.git
 		-DCMAKE_EXE_LINKER_FLAGS_RELEASE="-O1" \
 		-DCMAKE_INSTALL_PREFIX=$HOME/deps \
 		-DCMAKE_FIND_ROOT_PATH=$HOME/deps \
+		-DCMAKE_PREFIX_PATH=/opt/homebrew \
 		-DCORRADE_RC_EXECUTABLE=$HOME/deps-native/bin/corrade-rc \
-		-DMAGNUM_WITH_AUDIO=OFF \
+		-DMAGNUM_WITH_AUDIO=ON \
 		-DMAGNUM_WITH_DEBUGTOOLS=ON \
 		-DMAGNUM_WITH_MATERIALTOOLS=OFF \
 		-DMAGNUM_WITH_MESHTOOLS=ON \
@@ -103,6 +106,7 @@ test -d magnum || git clone https://github.com/mosra/magnum.git
 test -d magnum-integration || git clone https://github.com/mosra/magnum-integration.git
 (
 	cd magnum-integration
+	git pull
 	git submodule update --init
 
 	mkdir -p build-emscripten && cd build-emscripten
@@ -111,16 +115,15 @@ test -d magnum-integration || git clone https://github.com/mosra/magnum-integrat
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_CXX_FLAGS_RELEASE="-DNDEBUG -O1" \
 		-DCMAKE_EXE_LINKER_FLAGS_RELEASE="-O1" \
-		-DCMAKE_MODULE_PATH=$HOME/eigen/cmake/ \
+		-DCMAKE_PREFIX_PATH=/opt/homebrew \
 		-DCMAKE_INSTALL_PREFIX=$HOME/deps \
 		-DCMAKE_FIND_ROOT_PATH=$HOME/deps \
-		-DEIGEN3_INCLUDE_DIR=$HOME/eigen/ \
 		-DGLM_INCLUDE_DIR=$HOME/glm \
 		-DIMGUI_DIR=$HOME/imgui \
 		-DCORRADE_RC_EXECUTABLE=$HOME/deps-native/bin/corrade-rc \
 		-DMAGNUM_WITH_BULLET=ON \
 		-DMAGNUM_WITH_DART=OFF \
-		-DMAGNUM_WITH_EIGEN=ON \
+		-DMAGNUM_WITH_EIGEN=OFF \
 		-DMAGNUM_WITH_GLM=OFF \
 		-DMAGNUM_WITH_IMGUI=OFF \
 		-DMAGNUM_WITH_OVR=OFF \
