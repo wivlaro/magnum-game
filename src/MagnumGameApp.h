@@ -51,10 +51,6 @@ namespace MagnumGame {
     class MagnumGameApp : public Platform::Application {
     public:
 
-#ifdef CORRADE_TARGET_EMSCRIPTEN
-        typedef KeyEvent::Key Key;
-        typedef KeyEvent::Modifier Modifier;
-#endif
 
         void setupDebug();
 

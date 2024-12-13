@@ -108,7 +108,9 @@ namespace MagnumGame {
             debug << "Texture" << textureId << textureName;
             auto &texture = arrayAppend(textures, InPlaceInit);
             debug << "id=" << texture.id();
+#ifndef MAGNUM_TARGET_WEBGL
             texture.setLabel(textureName);
+#endif
             auto image = importer.image2D(textureData->image());
             if (image) {
                 debug << image->size();

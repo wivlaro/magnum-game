@@ -27,6 +27,7 @@ namespace MagnumGame {
             explicit Bone(const Containers::String &name)
                 : name(name) {
             }
+            DISALLOW_COPY(Bone)
         };
 
         struct SkinAsset {
@@ -36,6 +37,7 @@ namespace MagnumGame {
             explicit SkinAsset(const Containers::ArrayView<const UnsignedInt> &joints,
                 const Containers::ArrayView<const Matrix4>& inverseBindMatrices
                                         );
+            DISALLOW_COPY(SkinAsset)
         };
 
         struct SkinMeshAsset {

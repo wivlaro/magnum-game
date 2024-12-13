@@ -133,6 +133,7 @@ namespace MagnumGame {
         }
 
         auto objectId = pickObjectIdAt(event.position());
+        Debug{} << "Clicked objectId: " << objectId;
 
         // _gameState->playerClicked(objectId - PlayerIdOffset);
 

@@ -69,6 +69,9 @@ namespace MagnumGame {
 
         explicit Skin(const AnimatorAsset::SkinAsset& skinAsset);
 
+        Skin(const Skin &skin) = delete;
+        Skin &operator=(const Skin &skin) = delete;
+
         Containers::Array<Matrix4>& boneMatrices() { return _boneMatrices; }
 
     private:

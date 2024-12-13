@@ -16,7 +16,7 @@ It will output to ~/www folder, which you can then serve with a simple web serve
 
     ( cd ~/www && python -m SimpleHTTPServer 8000 )
 
-Then open a browser to [http://localhost:8000/namepicker](http://localhost:8000/namepicker)
+Then open a browser to [http://localhost:8000/magnum-game](http://localhost:8000/magnum-game)
 
 
 ## Developing

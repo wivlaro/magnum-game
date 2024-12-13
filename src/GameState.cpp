@@ -100,7 +100,11 @@ namespace MagnumGame {
                                               static_cast<int>(meshPositions.size()), sizeof(Vector3));
                     debug << "has no explicit collider, creating from mesh";
                 }
-                _levelMeshes.emplace_back(InPlaceInit, MeshTools::compile(*meshData))->setLabel(meshName);
+                [[maybe_unused]]
+                auto& mesh = _levelMeshes.emplace_back(InPlaceInit, MeshTools::compile(*meshData));
+#ifndef MAGNUM_TARGET_WEBGL
+                mesh->setLabel(meshName);
+#endif
             }
         }
 

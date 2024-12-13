@@ -45,7 +45,7 @@ namespace MagnumGame {
         _pitchAngle = clamp(_pitchAngle, Rad(10.0_degf), Rad(60.0_degf));
     }
 
-    void CameraController::update(Float deltaTime) {
+    void CameraController::update([[maybe_unused]] Float deltaTime) {
         if (_targetObject == nullptr) return;
 
         auto cosYaw = cos(static_cast<float>(_yawAngle));

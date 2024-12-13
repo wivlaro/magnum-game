@@ -76,8 +76,8 @@ if (CORRADE_TARGET_EMSCRIPTEN)
 
     include(UseEmscripten)
     emscripten_embed_file(MagnumGameApp ../font/Roboto-Regular.ttf /font/Roboto-Regular.ttf)
-    emscripten_embed_file(MagnumGameApp ../models/player.glb /models/player.glb)
-    emscripten_embed_file(MagnumGameApp ../faces /faces)
+    emscripten_embed_file(MagnumGameApp ../models/characters/ /models/characters/)
+    emscripten_embed_file(MagnumGameApp ../models/levels/ /models/levels/)
 
     target_link_libraries(MagnumGameApp PRIVATE
             MagnumPlugins::StbImageImporter

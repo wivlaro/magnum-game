@@ -84,7 +84,7 @@ namespace MagnumGame {
 
             auto jointIds = skinData->joints();
             assert(jointIds.size() == inverseBindMatrices.size());
-            _skins[skinId] = SkinAsset{jointIds, inverseBindMatrices};
+            new (&_skins[skinId]) SkinAsset{jointIds, inverseBindMatrices};
         }
 
         Debug{} << "Meshes:" << importer.meshCount();
@@ -94,8 +94,11 @@ namespace MagnumGame {
             Debug{} << "\tMesh" << meshId << ":" << meshName;
             auto meshData = importer.mesh(meshId);
 
+            [[maybe_unused]]
             auto &mesh = _meshes[meshId] = MeshTools::compile(*meshData);
+#ifndef MAGNUM_TARGET_WEBGL
             mesh.setLabel(meshName);
+#endif
             perVertexJointCounts[meshId] = MeshTools::compiledPerVertexJointCount(*meshData);
         }
 
@@ -136,11 +139,11 @@ namespace MagnumGame {
 
                     auto meshPerVertexJointCounts = perVertexJointCounts[meshId];
                     child.skinMesh = {
-                        .skin = &_skins[skinId],
-                        .mesh = &_meshes[meshId],
-                        .material = &_materials[matId],
-                        .perVertexJointCounts = meshPerVertexJointCounts.first(),
-                        .perVertexJointCountsSecondary = meshPerVertexJointCounts.second()
+                        &_skins[skinId],
+                        &_meshes[meshId],
+                        &_materials[matId],
+                        meshPerVertexJointCounts.first(),
+                        meshPerVertexJointCounts.second()
                     };
                 }
 
