@@ -35,6 +35,7 @@
 #include <Magnum/Trade/ImageData.h>
 
 #include "Animator.h"
+#include "AnimatorAsset.h"
 #include "MagnumGameCommon.h"
 #include "RigidBody.h"
 #include "TrackingCamera.h"
@@ -45,6 +46,7 @@ namespace MagnumGame {
     class Player;
     class GameModels;
     class Animator;
+    struct AnimatorAsset;
 
     class MagnumGameApp : public Platform::Application {
     public:
@@ -57,14 +59,6 @@ namespace MagnumGame {
         void setupDebug();
 
         explicit MagnumGameApp(const Arguments &arguments);
-
-        static float cameraCorrectionSpeed;
-        static float cameraCorrectionAcceleration;
-        static float cameraCorrectionAngularAcceleration;
-        static float cameraMinDistance;
-
-        ///In bullet physics, we use UserIndex1 to say what kind of data is stored in the next index - we only have player indices for now
-        static constexpr int World_UserIndex1_Player = 1;
 
         static Containers::Optional<Containers::String> findDirectory(Containers::StringView dirName);
 
@@ -84,7 +78,9 @@ namespace MagnumGame {
         void mouseReleaseEvent(MouseEvent &event) override;
         void mouseMoveEvent(MouseMoveEvent &event) override;
 
+#ifdef MAGNUM_SDL2APPLICATION_MAIN
         void anyEvent(SDL_Event &event) override;
+#endif
 
         GL::Framebuffer _framebuffer{NoCreate};
         GL::Renderbuffer _color{NoCreate}, _objectId{NoCreate}, _depth{NoCreate};
@@ -92,20 +88,15 @@ namespace MagnumGame {
         DebugTools::ResourceManager _debugResourceManager;
         SceneGraph::DrawableGroup3D _debugDrawables;
 
-        GL::Mesh _playerMesh{NoCreate};
-
         GL::Mesh _debugLinesMesh{NoCreate};
         GL::Buffer _debugLinesBuffer{NoCreate};
-        GL::Mesh _arenaDebugMesh{NoCreate};
 
         std::vector<Containers::Pointer<GL::Mesh>> _levelMeshes{};
         std::vector<Containers::Pointer<btConvexHullShape>> _levelShapes{};
-        std::vector<GL::Texture2D> _levelTextures{};
+        Containers::Array<GL::Texture2D> _levelTextures{};
+        Containers::Array<MaterialAsset> _levelMaterials{};
         std::map<GL::Mesh*, btConvexHullShape*> _meshToShapeMap{};
 
-        std::shared_ptr<GL::Texture2D> _thrustTexture, _laserTexture, _explosionTexture, _groundTexture;
-
-        Matrix4x4 _laserTransform, _explosionTransform, _thrustTransform;
 
         PluginManager::Manager<Text::AbstractFont> _fontManager;
         Containers::Pointer<Text::AbstractFont> _font;
@@ -151,14 +142,17 @@ namespace MagnumGame {
 
         bool _drawDebug{false};
 
+        std::unique_ptr<AnimatorAsset> _playerAsset{};
         std::unique_ptr<Tweakables> _tweakables;
-        RigidBody* _playerBody;
-        Animator* _playerAnimator;
+        RigidBody* _playerBody{};
+        Animator* _playerAnimator{};
 
         int controllerKeysHeld;
 
-        Containers::Pair<RigidBody *, Animator *> loadAnimatedModel(Trade::AbstractImporter &pointer,
-                                                                    Containers::StringView fileName);
+        std::unique_ptr<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &pointer,
+                                                         Containers::StringView fileName);
+
+        void createPlayer();
 
         void setup();
 

@@ -30,9 +30,12 @@ namespace MagnumGame {
                 : name(name), getter(std::move(getter)), setter(std::move(setter)) {
             }
 
+            float get() const { return getter(); }
+            void set(float v) { setter(v); }
+
         private:
-            std::function<void(float)> setter;
             std::function<float()> getter;
+            std::function<void(float)> setter;
         };
 
         /**

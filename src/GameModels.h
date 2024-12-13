@@ -9,6 +9,8 @@
 #include <BulletCollision/CollisionShapes/btConvexHullShape.h>
 #include <Magnum/Trade/Trade.h>
 
+#include "Animator.h"
+
 namespace MagnumGame {
 
 	using namespace Magnum;
@@ -17,14 +19,12 @@ namespace MagnumGame {
 public:
         explicit GameModels(Trade::AbstractImporter& gltfImporter);
 
-        static std::vector<GL::Texture2D> loadTextures(Trade::AbstractImporter &importer);
-        static std::vector<GL::Texture2D *> loadMaterials(Trade::AbstractImporter &importer, std::vector<GL::Texture2D>& textures);
+        static Containers::Array<GL::Texture2D> loadTextures(Trade::AbstractImporter &importer);
+        static Containers::Array<MaterialAsset> loadMaterials(Trade::AbstractImporter &importer, Containers::Array<GL::Texture2D>& textures);
 
         btCapsuleShape& getPlayerShape() { return _bPlayerShape; }
 
   private:
-        Magnum::GL::Mesh _playerMesh{NoCreate};
-
         btStaticPlaneShape _bGroundShape{{0,1,0},0};
         btCapsuleShape _bPlayerShape{0.125, 0.5};
 

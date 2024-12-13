@@ -47,11 +47,6 @@ namespace MagnumGame {
 
     using namespace Math::Literals;
 
-    float MagnumGameApp::cameraCorrectionSpeed = 1.0f;
-    float MagnumGameApp::cameraCorrectionAcceleration = 2.0f;
-    float MagnumGameApp::cameraCorrectionAngularAcceleration = 2.0f;
-    float MagnumGameApp::cameraMinDistance = 20.0f;
-
     MagnumGameApp::MagnumGameApp(const Arguments &arguments)
     : Platform::Application(arguments, NoCreate)
     {
@@ -85,12 +80,8 @@ namespace MagnumGame {
                    .mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
                                 {Shaders::PhongGL::ObjectIdOutput, GL::Framebuffer::ColorAttachment{1}}});
 
-        GL::Renderer::Error err;
-        while ((err = GL::Renderer::error()) != GL::Renderer::Error::NoError) {
-            Error() << "Error at start: " << err;
-        }
+        CHECK_GL_ERROR(__FILE__,__LINE__);
 
-        //
         _cameraObject = &_scene.addChild<Object3D>(nullptr)
             .translate(Vector3::zAxis(30.0f))
             .rotateX(-90.0_degf);
@@ -119,33 +110,23 @@ namespace MagnumGame {
         _vertexColorShader = Shaders::VertexColorGL3D{};
         _flatShader = Shaders::FlatGL3D{};
 
-
-        /* Setup the renderer so we can draw the debug lines on top */
         GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
         GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
         GL::Renderer::enable(GL::Renderer::Feature::PolygonOffsetFill);
         GL::Renderer::setPolygonOffset(2.0f, 0.5f);
 
-        /* Bullet setup */
         _bWorld.setGravity({0.0f, -10.0f, 0.0f});
         _bWorld.setDebugDrawer(&_debugDraw);
-
-        // _scene.addChild<RigidBody>(0.0f, &_bGroundShape, _bWorld);
 
         setupDebug();
         setup();
 
-        /* Loop at 60 Hz max */
 #ifndef CORRADE_TARGET_EMSCRIPTEN
         setSwapInterval(0);
         setMinimalLoopPeriod(8.0_msec);
 #endif
         _timeline.start();
     }
-
-
-
-
 
     void MagnumGameApp::drawEvent() {
 
@@ -156,10 +137,11 @@ namespace MagnumGame {
             .bind();
 
 
-        Vector2 controlVector = getPlayerControlVector();
-
-        auto cameraObjectMatrix = _cameraObject->absoluteTransformationMatrix();
-        _gameState->getPlayer()->setControl(controlVector, cameraObjectMatrix);
+        if (auto player = _gameState->getPlayer()) {
+            Vector2 controlVector = getPlayerControlVector();
+            auto cameraObjectMatrix = _cameraObject->absoluteTransformationMatrix();
+            player->setControl(controlVector, cameraObjectMatrix);
+        }
 
         _gameState->update();
 
@@ -171,21 +153,20 @@ namespace MagnumGame {
 
         _camera->draw(_animatorDrawables);
 
+        //Object picking support
         _framebuffer.mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
                                 {Shaders::PhongGL::ObjectIdOutput, GL::Framebuffer::ColorAttachment{1}}});
-        {
-            GL::Renderer::enable(GL::Renderer::Feature::Blending);
-            GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha, GL::Renderer::BlendFunction::OneMinusSourceAlpha);
+        GL::Renderer::enable(GL::Renderer::Feature::Blending);
+        GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha, GL::Renderer::BlendFunction::OneMinusSourceAlpha);
 
-            _camera->draw(_drawables);
+        _camera->draw(_drawables);
 
-            _framebuffer.mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
-                                    {Shaders::PhongGL::ObjectIdOutput,  GL::Framebuffer::DrawAttachment::None}});
-            //Any order drawing is ok, as everything is basically on the same horizontal plane
-            _camera->draw(_transparentDrawables);
+        _framebuffer.mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
+                                {Shaders::PhongGL::ObjectIdOutput,  GL::Framebuffer::DrawAttachment::None}});
 
-            _texturedShader.setProjectionMatrix(_camera->projectionMatrix());
-        }
+        //Might want to sort the drawables along the camera Z axis
+        _camera->draw(_transparentDrawables);
+
 
         renderDebug();
 

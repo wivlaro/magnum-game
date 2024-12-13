@@ -5,7 +5,9 @@
 #include <Magnum/GL/PixelFormat.h>
 #include <Magnum/GL/Framebuffer.h>
 #include <Magnum/Image.h>
+#ifdef MAGNUM_SDL2APPLICATION_MAIN
 #include <SDL_events.h>
+#endif
 
 #include "GameState.h"
 #include "OnGroundQuery.h"
@@ -58,14 +60,18 @@ namespace MagnumGame {
                     event.setAccepted();
                 } else if (event.key() == Key::Left) {
                     auto tweakIndex = debugMode.currentTweakIndex % debugMode.tweakableValues.size();
-                    auto p_value = debugMode.tweakableValues[tweakIndex].pValue;
-                    *p_value -= getTweakAmount(event, *p_value);
+                    auto& tweaker = debugMode.tweakableValues[tweakIndex];
+                    auto value = tweaker.get();
+                    value -= getTweakAmount(event, value);
+                    tweaker.set(value);
+
                     event.setAccepted();
                 } else if (event.key() == Key::Right) {
                     auto tweakIndex = debugMode.currentTweakIndex % debugMode.tweakableValues.size();
-                    auto p_value = debugMode.tweakableValues[tweakIndex].pValue;
-                    *p_value += getTweakAmount(event, *p_value);
-                    event.setAccepted();
+                    auto& tweaker = debugMode.tweakableValues[tweakIndex];
+                    auto value = tweaker.get();
+                    value += getTweakAmount(event, value);
+                    tweaker.set(value);
                 }
             }
         }
@@ -137,10 +143,12 @@ namespace MagnumGame {
         event.setAccepted();
     }
 
+#ifdef MAGNUM_SDL2APPLICATION_MAIN
     void MagnumGameApp::anyEvent(SDL_Event &event) {
         if (event.type == SDL_WINDOWEVENT_FOCUS_LOST) {
             controllerKeysHeld = 0;
         }
     }
+#endif
 
 }

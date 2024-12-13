@@ -12,14 +12,19 @@
 #include <Corrade/Containers/String.h>
 #include <Corrade/Containers/StringStlHash.h>
 #include <Magnum/SceneGraph/Camera.h>
+#include <Magnum/Trade/AnimationData.h>
+#include <Magnum/Trade/MaterialData.h>
 
 #include "MagnumGameApp.h"
 #include "MagnumGameCommon.h"
+#include "AnimatorAsset.h"
 
 namespace MagnumGame {
     using namespace Magnum;
 
     class Skin;
+    struct AnimatorAsset;
+
 
     class Animator : public SceneGraph::Drawable3D {
     public:
@@ -28,7 +33,8 @@ namespace MagnumGame {
         typedef SceneGraph::Object<SceneGraph::TranslationRotationScalingTransformation3D> BoneObject;
         typedef SceneGraph::Scene<SceneGraph::TranslationRotationScalingTransformation3D> BoneScene;
 
-        explicit Animator(Object3D &rootObject, Trade::AbstractImporter &importer, Shaders::PhongGL& meshShader, SceneGraph::DrawableGroup3D *animDrawables, SceneGraph::DrawableGroup3D *meshDrawables);
+        explicit Animator(Object3D &rootObject, const AnimatorAsset &asset, Shaders::PhongGL &meshShader,
+                       SceneGraph::DrawableGroup3D *animDrawables, SceneGraph::DrawableGroup3D *meshDrawables);
 
         Skin& getSkin(size_t skinIndex);
 
@@ -43,34 +49,30 @@ namespace MagnumGame {
         void addAnimation(const Containers::String &string, AnimationPlayer &&player);
 
     private:
-        //Animation asset data
-        std::vector<GL::Mesh> _meshes{};
-        std::vector<GL::Texture2D> _textures{};
-        std::vector<Skin> _skins{};
-        Containers::Array<Containers::Array<char>> _animationData;
 
         //Animation state data
         BoneScene _boneScene{};
         SceneGraph::Camera3D _fakeBoneCamera;
         SceneGraph::DrawableGroup3D _jointDrawables{};
+        Containers::Array<Skin> _skins;
 
         AnimationPlayer* _currentAnimation{};
         Containers::String _defaultAnimationName;
 
-        std::unordered_map<Containers::String, AnimationPlayer> _animations{};
-    };
+        std::unordered_map<Containers::String, AnimationPlayer> _animationPlayers{};
 
+        static void addAnimationTrack(AnimationPlayer &player, const Trade::AnimationData &animation, UnsignedInt trackIndex, std::map<int, BoneObject *> boneMap);
+    };
 
     class Skin {
     public:
 
-        explicit Skin(const Containers::ArrayView<const Matrix4>& inverseBindMatrices);
+        explicit Skin(const AnimatorAsset::SkinAsset& skinAsset);
 
         Containers::Array<Matrix4>& boneMatrices() { return _boneMatrices; }
 
     private:
         Containers::Array<Matrix4> _boneMatrices{};
-        Containers::Array<Matrix4> _inverseBindMatrices{};
 
     };
 

@@ -11,12 +11,6 @@ namespace MagnumGame {
     Tweakables::Tweakables() {
 
         _debugModes.emplace_back();
-        _debugModes.emplace_back(DebugMode{"Camera", 0, std::vector{
-            TweakableValue{"Correction Speed", &MagnumGameApp::cameraCorrectionSpeed},
-            TweakableValue{"Correction Acceleration", &MagnumGameApp::cameraCorrectionAcceleration},
-            TweakableValue{"Correction Angular Accel", &MagnumGameApp::cameraCorrectionAngularAcceleration},
-            TweakableValue{"Min distance", &MagnumGameApp::cameraMinDistance}
-        }});
 
         _debugModes.emplace_back(DebugMode{"Lights", 0, std::vector{
             TweakableValue{"Ambient", &TexturedDrawable::ambientColour},
@@ -46,7 +40,7 @@ namespace MagnumGame {
                 for (size_t tweakableIndex = 0; tweakableIndex < debugMode.tweakableValues.size(); tweakableIndex++)
                 {
                     auto& tweakableValue = debugMode.tweakableValues[tweakableIndex];
-                    debug << Debug::newline << tweakableValue.name << *tweakableValue.pValue;
+                    debug << Debug::newline << tweakableValue.name << tweakableValue.get();
                     debug << (tweakableIndex == debugMode.currentTweakIndex ? "<-CURRENT" : "");
                 }
             }

@@ -19,6 +19,6 @@ namespace MagnumGame {
     }
 
     void GameState::update() {
-        _player->update(_timeline.previousFrameDuration());
+        if (_player) _player->update(_timeline.previousFrameDuration());
     }
 }

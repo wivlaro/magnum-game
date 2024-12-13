@@ -36,6 +36,7 @@
 
 
 namespace MagnumGame {
+
     void MagnumGameApp::setup() {
         PluginManager::Manager<Trade::AbstractImporter> manager;
 
@@ -45,17 +46,27 @@ namespace MagnumGame {
         assert(gltfImporter);
         _models = std::make_unique<GameModels>(*gltfImporter);
 
-        auto loadedModel = loadAnimatedModel(*gltfImporter, "characters/character-female-b.glb");
-        _playerBody = loadedModel.first();
-        _playerAnimator = loadedModel.second();
+        _playerAsset = loadAnimatedModel(*gltfImporter, "characters/character-female-b.glb");
+
         loadLevel(*gltfImporter);
-        _playerBody->translate({0,2,0});
 
         _trackingCamera.emplace(*_cameraObject);
 
         _gameState = std::make_unique<GameState>(_timeline);
-        _gameState->setupPlayer(_playerBody, _playerAnimator);
 
+        createPlayer();
+    }
+
+    void MagnumGameApp::createPlayer() {
+        _playerBody = &_scene.addChild<RigidBody>(1.0f, &_models->getPlayerShape(), _bWorld, RigidBody::CollisionLayer::Dynamic);
+        auto& animationOffset = _playerBody->addChild<Object3D>();
+        _playerAnimator = &animationOffset.addFeature<Animator>(*_playerAsset, _animatedTexturedShader, &_animatorDrawables, &_drawables);
+        animationOffset.setTransformation(Matrix4::translation({0, -0.4f, 0}));
+
+        //Prevent rotation in X & Z
+        _playerBody->rigidBody().setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
+        _gameState->setupPlayer(_playerBody, _playerAnimator);
+        _gameState->getPlayer()->resetToStart(Matrix4::translation({0,2,0}));
         _trackingCamera->setupTargetFromCurrent(*_playerBody);
 
         _playerAnimator->play("idle", false);
@@ -85,7 +96,7 @@ namespace MagnumGame {
     }
 
 
-    Containers::Pair<RigidBody *, Animator *> MagnumGameApp::loadAnimatedModel( Trade::AbstractImporter &importer, Containers::StringView fileName) {
+    std::unique_ptr<AnimatorAsset> MagnumGameApp::loadAnimatedModel(Trade::AbstractImporter &importer, Containers::StringView fileName) {
 
         if (auto modelsDir = findDirectory("models")) {
             auto filePath = Utility::Path::join(*modelsDir, fileName);
@@ -103,18 +114,7 @@ namespace MagnumGame {
             }
         }
 
-
-        auto& rootObject = _scene.addChild<RigidBody>(1.0f, &_models->getPlayerShape(), _bWorld, RigidBody::CollisionLayer::Dynamic);
-        auto& animationOffset = rootObject.addChild<Object3D>();
-        animationOffset.setTransformation(Matrix4::translation({0, -0.4f, 0}));
-        auto& animator = animationOffset.addFeature<Animator>(importer, _animatedTexturedShader, &_animatorDrawables, &_drawables);
-
-        //Prevent rotation in X & Z
-        rootObject.rigidBody().setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
-
-
-        importer.close();
-        return {&rootObject, &animator};
+        return std::make_unique<AnimatorAsset>(importer);
     }
 
     void MagnumGameApp::loadLevel(Trade::AbstractImporter &importer) {
@@ -132,12 +132,12 @@ namespace MagnumGame {
         _meshToShapeMap.clear();
 
         std::vector<UnsignedInt> meshToMeshCollider{};
-        for (auto meshId = 0; meshId < importer.meshCount(); meshId++) {
+        for (auto meshId = 0U; meshId < importer.meshCount(); meshId++) {
             meshToMeshCollider.push_back(meshId);
         }
 
         Debug{} << "Meshes:" << importer.meshCount();
-        for (auto meshId = 0; meshId < importer.meshCount(); meshId++) {
+        for (auto meshId = 0U; meshId < importer.meshCount(); meshId++) {
             auto meshName = importer.meshName(meshId);
             Debug debug{};
             debug << "\tMesh" << meshId << ":" << meshName;
@@ -185,7 +185,7 @@ namespace MagnumGame {
 
         _levelTextures = GameModels::loadTextures(importer);
 
-        auto materialTextures = GameModels::loadMaterials(importer, _levelTextures);
+        _levelMaterials = GameModels::loadMaterials(importer, _levelTextures);
 
         for (UnsignedInt sc = 0; sc < importer.sceneCount(); sc++) {
             Debug{} << "Scene" << sc << ":" << importer.sceneName(sc) << "(default"
@@ -245,11 +245,12 @@ namespace MagnumGame {
                         rigidBody.syncPose();
                     }
 
-                    rigidBody.addFeature<TexturedDrawable>(materialTextures[materialId], _texturedShader, *mesh, _drawables);
+                    rigidBody.addFeature<TexturedDrawable>(_levelMaterials[materialId].texture, _texturedShader, *mesh, _drawables);
                 }
             }
         }
-        { GL::Renderer::Error err; while ((err = GL::Renderer::error()) != GL::Renderer::Error::NoError) { Error() << __FILE__ << ":" << __LINE__ << "Error: " << err; } }
+
+        CHECK_GL_ERROR(__FILE__,__LINE__);
     }
 
 

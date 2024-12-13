@@ -34,7 +34,7 @@ namespace MagnumGame {
                                   SceneGraph::DrawableGroup3D &drawables,
                                   UnsignedInt objectId = 0);
         explicit TexturedDrawable(SceneGraph::AbstractObject3D &object,
-                                  GL::Texture2D* image,
+                                  GL::Texture2D* texture,
                                   Shaders::PhongGL &shader,
                                   GL::Mesh& mesh,
                                   SceneGraph::DrawableGroup3D &drawables,
@@ -59,18 +59,18 @@ namespace MagnumGame {
 
     private:
         void draw(const Matrix4 &transformation, SceneGraph::Camera3D &) override;
-        static GL::Texture2D&& makeTexture(const Trade::ImageData2D&);
+        static GL::Texture2D makeTexture(const Trade::ImageData2D &);
 
         Color4 _color;
         Containers::Optional<GL::Texture2D> _ownTexture;
-        GL::Texture2D* _texture;
+        GL::Texture2D* _texture{};
         GL::Mesh& _mesh;
         Shaders::PhongGL& _shader;
 
-        UnsignedInt _objectId;
-        Containers::Array<Matrix4>* _boneMatrices;
-        UnsignedInt _perVertexJointCount;
-        UnsignedInt _secondaryPerVertexJointCount;
+        UnsignedInt _objectId{};
+        Containers::Array<Matrix4>* _boneMatrices{};
+        UnsignedInt _perVertexJointCount{};
+        UnsignedInt _secondaryPerVertexJointCount{};
     };
 
 } // NamePicker

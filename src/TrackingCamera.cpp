@@ -2,7 +2,7 @@
 
 namespace MagnumGame {
     TrackingCamera::TrackingCamera(Object3D &cameraObject)
-        : _cameraObject(cameraObject) {
+        : _cameraObject(cameraObject), _targetObject{}, _distance(10) {
     }
 
     void TrackingCamera::setupTargetFromCurrent(Object3D &target) {

@@ -1,5 +1,6 @@
 #include "GameModels.h"
 #include <memory>
+#include <Corrade/Containers/GrowableArray.h>
 #include <Magnum/MeshTools/Compile.h>
 #include <Magnum/Trade/SceneData.h>
 #include <Magnum/Trade/AbstractImporter.h>
@@ -18,19 +19,8 @@
 namespace MagnumGame {
 
 
-    GameModels::GameModels(Trade::AbstractImporter &gltfImporter) {
+    GameModels::GameModels(Trade::AbstractImporter &) {
 
-        if (auto modelsDir = MagnumGameApp::findDirectory("models/characters")) {
-            auto filePath = Utility::Path::join(*modelsDir, "character-female-b.glb");
-            if (gltfImporter.openFile(filePath)) {
-                for (UnsignedInt sc = 0; sc < gltfImporter.sceneCount(); sc++) {
-                    Debug{} << "Scene" << sc << ":" << gltfImporter.sceneName(sc) << "(default"
-                            << gltfImporter.defaultScene() << ")";
-                    auto sceneData = gltfImporter.scene(sc);
-//                    loadModel(gltfImporter, *sceneData, "Player", &_playerMesh, nullptr, nullptr, nullptr);
-                }
-              }
-        }
     }
 
     void GameModels::loadModel(Trade::AbstractImporter& gltfImporter,
@@ -85,17 +75,16 @@ namespace MagnumGame {
     }
 
 
-
-
-    std::vector<GL::Texture2D> GameModels::loadTextures(Trade::AbstractImporter &importer) {
-        std::vector<GL::Texture2D> textures;
+    Containers::Array<GL::Texture2D> GameModels::loadTextures(Trade::AbstractImporter &importer) {
+        Containers::Array<GL::Texture2D> textures;
+        arrayReserve(textures, importer.textureCount());
         Debug{} << "Textures:" << importer.textureCount();
-        for (auto textureId = 0; textureId < importer.textureCount(); textureId++) {
+        for (auto textureId = 0U; textureId < importer.textureCount(); textureId++) {
             auto textureData = importer.texture(textureId);
             auto textureName = importer.textureName(textureId);
             Debug debug{};
             debug << "Texture" << textureId << textureName;
-            auto &texture = textures.emplace_back();
+            auto &texture = arrayAppend(textures, InPlaceInit);
             debug << "id=" << texture.id();
             texture.setLabel(textureName);
             auto image = importer.image2D(textureData->image());
@@ -111,25 +100,27 @@ namespace MagnumGame {
         return textures;
     }
 
-    std::vector<GL::Texture2D *> GameModels::loadMaterials(Trade::AbstractImporter &importer, std::vector<GL::Texture2D>& textures) {
-        std::vector<GL::Texture2D *> materialTextures{};
+    Containers::Array<MaterialAsset> GameModels::loadMaterials(Trade::AbstractImporter &importer, Containers::Array<GL::Texture2D>& textures) {
+        Containers::Array<MaterialAsset> materials{};
+        arrayReserve(materials, importer.materialCount());
         Debug{} << "Materials:" << importer.materialCount();
-        for (auto materialId = 0; materialId < importer.materialCount(); materialId++) {
+        for (auto materialId = 0U; materialId < importer.materialCount(); materialId++) {
             auto material = importer.material(materialId);
             Debug{} << "\tMaterial" << materialId << importer.materialName(materialId) << material->types();
-            for (auto attributeId = 0; attributeId < material->attributeCount(); attributeId++) {
+            for (auto attributeId = 0U; attributeId < material->attributeCount(); attributeId++) {
                 Debug{} << "\t\tattribute" << attributeId << material->attributeName(attributeId) << material->
                         attributeType(attributeId) << material->attributeDataFlags();
             }
 
-            GL::Texture2D *texId = nullptr;
+            GL::Texture2D *texture = nullptr;
             if (auto textureId = material->findAttribute<UnsignedInt>(Trade::MaterialAttribute::DiffuseTexture)) {
-                texId = &textures[*textureId];
+                texture = &textures[*textureId];
             } else if ((textureId = material->findAttribute<UnsignedInt>(Trade::MaterialAttribute::BaseColorTexture))) {
-                texId = &textures[*textureId];
+                texture = &textures[*textureId];
             }
-            materialTextures.emplace_back(texId);
+            arrayAppend(materials, InPlaceInit, texture);
+            Debug{} << "\tMaterial" << materialId << " texture ID" << texture->id() << " address " << materials[materialId].texture;
         }
-        return materialTextures;
+        return materials;
     }
 }

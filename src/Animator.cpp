@@ -4,13 +4,11 @@
 
 #include "Animator.h"
 
+#include <ostream>
 #include <unordered_set>
 #include <set>
-#include <Corrade/Containers/GrowableArray.h>
 #include <Magnum/Trade/AbstractImporter.h>
 #include <Magnum/Trade/AnimationData.h>
-#include <Magnum/Trade/SceneData.h>
-#include <Magnum/Trade/SkinData.h>
 #include <Corrade/Containers/StructuredBindings.h>
 #include <Magnum/Math/CubicHermite.h>
 #include <Magnum/MeshTools/Compile.h>
@@ -21,203 +19,163 @@
 #include "TexturedDrawable.h"
 
 namespace MagnumGame {
-    Animator::Animator(Object3D &rootObject, Trade::AbstractImporter &importer, Shaders::PhongGL& meshShader, SceneGraph::DrawableGroup3D *animDrawables, SceneGraph::DrawableGroup3D *meshDrawables)
-        : SceneGraph::Drawable3D(rootObject, animDrawables),
-    _fakeBoneCamera{_boneScene}
+
+
+    Animator::Animator(Object3D &rootObject, const AnimatorAsset &asset, Shaders::PhongGL &meshShader,
+                       SceneGraph::DrawableGroup3D *animDrawables, SceneGraph::DrawableGroup3D *meshDrawables)
+        : SceneGraph::Drawable3D(rootObject, animDrawables)
+    , _fakeBoneCamera{_boneScene}
+    , _skins{NoInit, asset._skins.size()}
     {
-        auto sceneId = importer.defaultScene();
-        Debug{} << "Scene" << sceneId << ":" << importer.sceneName(sceneId);
-        auto sceneData = importer.scene(sceneId);
 
-        for (auto skinId = 0; skinId < importer.skin3DCount(); skinId++) {
-            Debug{} << "Skin" << skinId << importer.skin3DName(skinId) << "Allocated";
-
-            auto skinData = importer.skin3D(skinId);
-            auto inverseBindMatrices = skinData->inverseBindMatrices();
-
-            _skins.emplace_back(inverseBindMatrices);
-        }
-
-        _textures = std::move(GameModels::loadTextures(importer));
-        auto materialTextures = GameModels::loadMaterials(importer, _textures);
 
         std::map<int, BoneObject *> boneMap;
-        auto &rootBone = getRootBone();
 
-        std::set<int> meshTree{};
-        std::function<bool(int, BoneObject &, int)> processBones = [&](int parentId, BoneObject &parentBone, int depth) {
-            boneMap[parentId] = &parentBone;
-            bool usedByMesh = parentId>= 0 && !sceneData->meshesMaterialsFor(parentId).isEmpty();
+        std::function<void(BoneObject &, const AnimatorAsset::Bone &, int)> instantiateBone =
+            [&](BoneObject &parentBone, const AnimatorAsset::Bone &boneAsset, int depth) {
 
-            Debug{} << std::string(depth, '\t') << "Bone" << parentId <<  (parentId == -1 ? "ROOT" : importer.objectName(parentId)) << (
-                usedByMesh ? "HAS MESH" : "");
+            boneMap[boneAsset.boneId] = &parentBone;
+            parentBone.setTransformation(boneAsset.transform);
+            Debug{} << std::string(depth, '\t') << "Bone" << boneAsset.name;
 
-            for (auto &childId: sceneData->childrenFor(parentId)) {
-                auto &childBone = parentBone.addChild<BoneObject>();
-
-                if (auto transform = sceneData->transformation3DFor(childId)) {
-                    childBone.setTransformation(*transform);
-                }
-
-                if (processBones(childId, childBone, depth + 1)) {
-                    usedByMesh = true;
-                }
+            for (auto &childBoneAsset: boneAsset.children) {
+                instantiateBone(parentBone.addChild<BoneObject>(), childBoneAsset, depth + 1);
             }
-
-            if (usedByMesh) {
-                meshTree.insert(parentId);
-            }
-
-            return usedByMesh;
         };
 
-        processBones(-1, rootBone, 0);
+        instantiateBone(getRootBone(), asset._rootBone, 0);
 
-        for (auto skinId = 0; skinId < importer.skin3DCount(); skinId++) {
-            Debug{} << "Skin" << skinId << importer.skin3DName(skinId) << "Add joints";
+        std::map<const AnimatorAsset::SkinAsset*, Skin*> skinMap;
+        for (auto skinIndex = 0; skinIndex < asset._skins.size(); ++skinIndex) {
+            auto& skinAsset = asset._skins[skinIndex];
+            auto& skin = *new (&_skins[skinIndex]) Skin{skinAsset};
+            Debug{} << "Skin setup asset=" << &skinAsset << "skin" << &skin << "matrices" << &skin.boneMatrices() << "data @" << skin.boneMatrices().data() << "size" << skin.boneMatrices().size();
+            skinMap[&skinAsset] = &skin;
 
-            auto skinData = importer.skin3D(skinId);
-            auto joints = skinData->joints();
-            auto inverseBindMatrices = skinData->inverseBindMatrices();
-            auto &skin = _skins[skinId];
-
-            for (auto jointIndex = 0; jointIndex < joints.size(); jointIndex++) {
-                auto jointId = joints[jointIndex];
-                Debug{} << "Joint" << jointIndex << jointId << importer.objectName(jointId);
-
-                boneMap[jointId]->addFeature<JointDrawable>(inverseBindMatrices[jointIndex],
-                                                            skin.boneMatrices()[jointIndex], _jointDrawables);
+            for (auto jointIndex = 0U; jointIndex < skinAsset._jointBoneIds.size(); jointIndex++) {
+                auto joint = skinAsset._jointBoneIds[jointIndex];
+                boneMap[joint]->addFeature<JointDrawable>(skinAsset._inverseBindMatrices[jointIndex], skin.boneMatrices()[jointIndex], _jointDrawables);
             }
-        }
-
-        Debug{} << "Meshes:" << importer.meshCount();
-        Containers::Array<Containers::Pair<UnsignedInt, UnsignedInt>> perVertexJointCounts;
-        for (auto meshId = 0; meshId < importer.meshCount(); meshId++) {
-            auto meshName = importer.meshName(meshId);
-            Debug{} << "\tMesh" << meshId << ":" << meshName;
-            auto meshData = importer.mesh(meshId);
-
-            auto& mesh = _meshes.emplace_back(MeshTools::compile(*meshData));
-            mesh.setLabel(meshName);
-            arrayAppend(perVertexJointCounts, MeshTools::compiledPerVertexJointCount(*meshData));
         }
 
         std::map<int, Object3D *> objectMap;
-        std::function<void(int, Object3D &, int)> processMeshes = [&](int parentId, Object3D &parent, int depth) {
-            if (meshTree.find(parentId) == meshTree.end()) {
-                Debug{} << std::string(depth, '\t') << "Skipping" << parentId << (parentId == -1 ? "ROOT" : importer.objectName(parentId))
-                << "No Mesh";
-                return;
+        std::function<void(Object3D &, const AnimatorAsset::SkinMeshNode&)> processMeshes = [&](Object3D &parent, const AnimatorAsset::SkinMeshNode& parentAsset) {
+
+            parent.setTransformation(parentAsset.transform);
+
+            if (parentAsset.skinMesh.mesh != nullptr && parentAsset.skinMesh.material != nullptr) {
+                auto& drawable =
+                parent.addFeature<TexturedDrawable>(parentAsset.skinMesh.material->texture, meshShader, *parentAsset.skinMesh.mesh, *meshDrawables);
+
+                if (parentAsset.skinMesh.skin != nullptr) {
+                    auto skinBone = skinMap.find(parentAsset.skinMesh.skin);
+                    if (skinBone != skinMap.end()) {
+                        Debug{} << "Skin insta asset=" << parentAsset.skinMesh.skin << "skin" << skinBone->second << "matrices" << &skinBone->second->boneMatrices() << "data @"<< skinBone->second->boneMatrices().data() << "size" << skinBone->second->boneMatrices().size();
+                        drawable.setSkin(*skinBone->second,
+                            parentAsset.skinMesh.perVertexJointCounts,
+                            parentAsset.skinMesh.perVertexJointCountsSecondary);
+                    }
+                    else {
+                        Error{} << "No skin bone found for" << parentAsset.skinMesh.skin;
+                    }
+                }
             }
 
-            objectMap[parentId] = &parent;
-
-            for (auto &childId: sceneData->childrenFor(parentId)) {
-                auto childName = importer.objectName(childId);
-                Debug{} << std::string(depth, '\t') << "Object" << childId << childName;
-
-                auto &child = parent.addChild<Object3D>();
-
-                int skinId = -1;
-                for (auto sId: sceneData->skinsFor(childId)) {
-                    Debug{} << std::string(depth, '\t') << "  " << "Skin" << sId << importer.skin3DName(sId);
-                    skinId = sId;
-                    break;
-                }
-                for (auto [meshId,matId]: sceneData->meshesMaterialsFor(childId)) {
-                    Debug{} << std::string(depth, '\t') << "  " << "Mesh" << meshId << importer.meshName(meshId) <<
-                            "Material" << matId <<
-                            (matId != -1 ? importer.materialName(matId) : "NO MATERIAL");
-
-                    auto& drawable = child.addFeature<TexturedDrawable>(materialTextures[matId], meshShader, _meshes[meshId], *meshDrawables);
-                    drawable.setSkin(_skins[skinId], perVertexJointCounts[meshId].first(), perVertexJointCounts[meshId].second());
-                }
-
-                processMeshes(childId, child, depth + 1);
+            for (auto& child : parentAsset.children) {
+                processMeshes(parent.addChild<Object3D>(), child);
             }
         };
 
-        processMeshes(-1, rootObject, 0);
+        processMeshes(rootObject, asset._rootSkinMeshNode);
 
-        if (importer.animationCount() > 0) {
-            for (UnsignedInt animationIndex = 0; animationIndex != importer.animationCount(); ++animationIndex) {
-                auto animationName = importer.animationName(animationIndex);
-                Debug{} << "Animation" << animationIndex << animationName;
-                auto animationData = importer.animation(animationIndex);
-                auto &animation = *animationData;
+        for (auto& [animationName, animationData] : asset._animations) {
 
-                auto &player = _animations[animationName];
+            auto &player = _animationPlayers[animationName];
 
-                for (UnsignedInt trackIndex = 0; trackIndex != animation.trackCount(); ++trackIndex) {
-                    auto targetObjectId = animation.trackTarget(trackIndex);
-                    Debug{} << "\tTrack" << trackIndex << importer.objectName(targetObjectId) << animation.
-                            trackTargetName(trackIndex) <<
-                            animation.trackType(trackIndex);
+            Debug{} << "Instancing anim" << animationName;
+            for (UnsignedInt trackIndex = 0; trackIndex != animationData.trackCount(); ++trackIndex) {
 
-                    auto targetObject = boneMap.find(targetObjectId);
+                auto animatedObjectId = animationData.trackTarget(trackIndex);
+                auto targetBone = asset._bonesById.find(animatedObjectId);
 
-                    if (targetObject == boneMap.end()) {
-                        Warning{} << "Can't find bone for animation track" << trackIndex << targetObjectId;
-                        continue;
-                    }
-
-                    auto &animatedObject = *targetObject->second;
-
-                    switch (animation.trackTargetName(trackIndex)) {
-                        case Trade::AnimationTrackTarget::Translation3D: {
-                            const auto callback = [](Float, const Vector3 &translation, auto &object) {
-                                object.setTranslation(translation);
-                            };
-                            if (animation.trackType(trackIndex) == Trade::AnimationTrackType::CubicHermite3D) {
-                                player.addWithCallback(animation.track<CubicHermite3D>(trackIndex),
-                                                       callback, animatedObject);
-                            } else {
-                                CORRADE_INTERNAL_ASSERT(
-                                    animation.trackType(trackIndex) == Trade::AnimationTrackType::Vector3);
-                                player.addWithCallback(animation.track<Vector3>(trackIndex),
-                                                       callback, animatedObject);
-                            }
-                        }
-                        break;
-                        case Trade::AnimationTrackTarget::Rotation3D: {
-                            const auto callback = [](Float, const Quaternion &rotation, auto &object) {
-                                object.setRotation(rotation);
-                            };
-                            if (animation.trackType(trackIndex) == Trade::AnimationTrackType::CubicHermiteQuaternion) {
-                                player.addWithCallback(animation.track<CubicHermiteQuaternion>(trackIndex),
-                                                       callback, animatedObject);
-                            } else {
-                                CORRADE_INTERNAL_ASSERT(
-                                    animation.trackType(trackIndex) == Trade::AnimationTrackType::Quaternion);
-                                player.addWithCallback(animation.track<Quaternion>(trackIndex),
-                                                       callback, animatedObject);
-                            }
-                        }
-                        break;
-                        case Trade::AnimationTrackTarget::Scaling3D: {
-                            const auto callback = [](Float, const Vector3 &scaling, auto &object) {
-                                object.setScaling(scaling);
-                            };
-                            if (animation.trackType(trackIndex) == Trade::AnimationTrackType::CubicHermite3D) {
-                                player.addWithCallback(animation.track<CubicHermite3D>(trackIndex),
-                                                       callback, animatedObject);
-                            } else {
-                                CORRADE_INTERNAL_ASSERT(
-                                    animation.trackType(trackIndex) == Trade::AnimationTrackType::Vector3);
-                                player.addWithCallback(animation.track<Vector3>(trackIndex),
-                                                       callback, animatedObject);
-                            }
-                        }
-                        break;
-                        default: CORRADE_INTERNAL_ASSERT_UNREACHABLE();
-                            break;
-                    }
+                if (targetBone != asset._bonesById.end()) {
+                    Debug{} << "Track" << animationName << "track" << trackIndex
+                    << "target" << animationData.trackTarget(trackIndex)
+                    << targetBone->second.name
+                    << "type" << animationData.trackType(trackIndex)
+                    << "(name" << animationData.trackTargetName(trackIndex) << ")"
+                    << "result" << animationData.trackResultType(trackIndex);
                 }
-
-                player.setDuration(animationData->duration());
-                player.setPlayCount(0);
-                arrayAppend(_animationData, animation.release());
+                addAnimationTrack(player, animationData, trackIndex, boneMap);
             }
+
+            player.setDuration(animationData.duration());
+            player.setPlayCount(0);
+        }
+    }
+
+
+    void Animator::addAnimationTrack(
+        AnimationPlayer &player, const Trade::AnimationData &animation, UnsignedInt trackIndex,
+        std::map<int, BoneObject *> boneMap) {
+        auto animatedObjectId = animation.trackTarget(trackIndex);
+        auto targetObject = boneMap.find(animatedObjectId);
+
+        if (targetObject == boneMap.end()) {
+            Warning{} << "Can't find bone for animation track" << trackIndex << animatedObjectId;
+            return;
+        }
+
+        auto &animatedObject = *targetObject->second;
+
+        switch (animation.trackTargetName(trackIndex)) {
+            case Trade::AnimationTrackTarget::Translation3D: {
+                const auto callback = [](Float, const Vector3 &translation, auto &object) {
+                    object.setTranslation(translation);
+                };
+                if (animation.trackType(trackIndex) == Trade::AnimationTrackType::CubicHermite3D) {
+                    player.addWithCallback(animation.track<CubicHermite3D>(trackIndex),
+                                           callback, animatedObject);
+                } else {
+                    CORRADE_INTERNAL_ASSERT(
+                        animation.trackType(trackIndex) == Trade::AnimationTrackType::Vector3);
+                    player.addWithCallback(animation.track<Vector3>(trackIndex),
+                                           callback, animatedObject);
+                }
+            }
+            break;
+            case Trade::AnimationTrackTarget::Rotation3D: {
+                const auto callback = [](Float, const Quaternion &rotation, auto &object) {
+                    object.setRotation(rotation);
+                };
+                if (animation.trackType(trackIndex) == Trade::AnimationTrackType::CubicHermiteQuaternion) {
+                    player.addWithCallback(animation.track<CubicHermiteQuaternion>(trackIndex),
+                                           callback, animatedObject);
+                } else {
+                    CORRADE_INTERNAL_ASSERT(
+                        animation.trackType(trackIndex) == Trade::AnimationTrackType::Quaternion);
+                    player.addWithCallback(animation.track<Quaternion>(trackIndex),
+                                           callback, animatedObject);
+                }
+            }
+            break;
+            case Trade::AnimationTrackTarget::Scaling3D: {
+                const auto callback = [](Float, const Vector3 &scaling, auto &object) {
+                    object.setScaling(scaling);
+                };
+                if (animation.trackType(trackIndex) == Trade::AnimationTrackType::CubicHermite3D) {
+                    player.addWithCallback(animation.track<CubicHermite3D>(trackIndex),
+                                           callback, animatedObject);
+                } else {
+                    CORRADE_INTERNAL_ASSERT(
+                        animation.trackType(trackIndex) == Trade::AnimationTrackType::Vector3);
+                    player.addWithCallback(animation.track<Vector3>(trackIndex),
+                                           callback, animatedObject);
+                }
+            }
+            break;
+            default: CORRADE_INTERNAL_ASSERT_UNREACHABLE();
+                break;
         }
     }
 
@@ -225,12 +183,11 @@ namespace MagnumGame {
         return _skins[skinIndex];
     }
 
-    Skin::Skin(const Containers::ArrayView<const Matrix4> &inverseBindMatrices)
-        : _boneMatrices{DirectInit, inverseBindMatrices.size(), Math::IdentityInit},
-          _inverseBindMatrices{InPlaceInit, inverseBindMatrices} {
+    Skin::Skin(const AnimatorAsset::SkinAsset &skinAsset)
+        : _boneMatrices{DirectInit, skinAsset._inverseBindMatrices.size(), Math::IdentityInit} {
     }
 
-    void Animator::draw(const Matrix4 &transformationMatrix, SceneGraph::Camera3D &camera) {
+    void Animator::draw(const Matrix4 &, SceneGraph::Camera3D &) {
         if (_currentAnimation) {
             _currentAnimation->advance(std::chrono::system_clock::now().time_since_epoch());
         }
@@ -238,8 +195,8 @@ namespace MagnumGame {
     }
 
     void Animator::play(const Containers::StringView &animationName, bool restart) {
-        auto animIt = _animations.find(animationName);
-        if (animIt == _animations.end()) {
+        auto animIt = _animationPlayers.find(animationName);
+        if (animIt == _animationPlayers.end()) {
             Warning{} << "Can't find animation" << animationName;
             return;
         }
@@ -251,13 +208,13 @@ namespace MagnumGame {
         if (_currentAnimation) {
             _currentAnimation->stop();
         }
-        _currentAnimation = &_animations[animationName];
+        _currentAnimation = &_animationPlayers[animationName];
         _currentAnimation = &animIt->second;
         assert(_currentAnimation == &animIt->second);
         _currentAnimation->play(std::chrono::system_clock::now().time_since_epoch());
     }
 
     void Animator::addAnimation(const Containers::String &name, AnimationPlayer &&player) {
-        _animations[name] = std::move(player);
+        _animationPlayers[name] = std::move(player);
     }
 } // MagnumGame

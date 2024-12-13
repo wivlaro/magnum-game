@@ -31,7 +31,7 @@ namespace MagnumGame {
     }
 
     TexturedDrawable::TexturedDrawable(SceneGraph::AbstractObject3D &object,
-                                       GL::Texture2D *image,
+                                       GL::Texture2D *texture,
                                        Magnum::Shaders::PhongGL &shader,
                                        Magnum::GL::Mesh &mesh,
                                        SceneGraph::DrawableGroup3D &drawables,
@@ -39,20 +39,23 @@ namespace MagnumGame {
         : SceneGraph::Drawable3D{object, &drawables},
           _color{0xffffffff_rgbaf},
           _ownTexture{Containers::NullOpt},
-          _texture(image),
+          _texture(texture),
           _mesh{mesh},
           _shader{shader},
           _objectId(objectId) {
+        if (_texture) {
+            Debug{} << "TexturedDrawable::TexturedDrawable() " << texture << texture->id();
+        }
     }
 
-    GL::Texture2D &&TexturedDrawable::makeTexture(const Trade::ImageData2D &image) {
+    GL::Texture2D TexturedDrawable::makeTexture(const Trade::ImageData2D &image) {
         GL::Texture2D t{};
         t.setWrapping(GL::SamplerWrapping::ClampToEdge)
                 .setMagnificationFilter(GL::SamplerFilter::Linear)
                 .setMinificationFilter(GL::SamplerFilter::Linear)
                 .setStorage(1, GL::textureFormat(image.format()), image.size())
                 .setSubImage(0, {}, image);
-        return std::move(t);
+        return t;
     }
 
     void TexturedDrawable::draw(const Magnum::Matrix4 &transformation, SceneGraph::Camera3D &camera) {
@@ -70,7 +73,7 @@ namespace MagnumGame {
         _shader.setLightPositions({object().absoluteTransformationMatrix().inverted() * Vector4{lightDirection, 0.0f}.normalized()});
         if (_texture) {
             _shader.bindDiffuseTexture(*_texture);
-            { GL::Renderer::Error err; while ((err = GL::Renderer::error()) != GL::Renderer::Error::NoError) { Error() << ("TexturedDrawable.cpp" ":" "67") << "Error: " << err << _texture << _texture->id(); } };
+            CHECK_GL_ERROR(__FILE__, __LINE__);
         }
         if (_shader.flags() & Shaders::PhongGL::Flag::ObjectId) {
             _shader.setObjectId(_objectId);
@@ -117,6 +120,7 @@ namespace MagnumGame {
 
     void TexturedDrawable::setSkin(Skin &skin, UnsignedInt perVertexJointCount,
                                    UnsignedInt secondaryPerVertexJointCount) {
+        Debug{} << "TexturedDrawable setSkin boneMatrices" << &skin.boneMatrices() << "data @" <<skin.boneMatrices().data() << "size" << skin.boneMatrices().size();
         _boneMatrices = &skin.boneMatrices();
         _perVertexJointCount = perVertexJointCount;
         _secondaryPerVertexJointCount = secondaryPerVertexJointCount;

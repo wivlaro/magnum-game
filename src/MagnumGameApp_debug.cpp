@@ -32,8 +32,6 @@ namespace MagnumGame {
         _tweakables = std::make_unique<Tweakables>();
 
         _debugResourceManager.set(DebugRendererGroup, DebugTools::ObjectRendererOptions{}.setSize(3.f));
-
-        _arenaDebugMesh = MeshTools::compile(Magnum::Primitives::circle3DWireframe(32));
     }
 
     void MagnumGameApp::addDebugDrawable(RigidBody &playerRigidBody) {
