@@ -45,6 +45,20 @@ namespace MagnumGame {
 
     Vector3 Player::getPosition() const { return _pBody->transformation().translation(); }
 
+    void Player::setControl(Vector2 controlVector, const Math::Matrix4<Float> &cameraObjectMatrix) {
+
+        Vector3 cameraControlVector;
+        if (!controlVector.isZero()) {
+            cameraControlVector = cameraObjectMatrix.transformVector({ controlVector.x(), 0, -controlVector.y() });
+            cameraControlVector.y() = 0;
+            cameraControlVector = cameraControlVector.normalized();
+        }
+        else {
+            cameraControlVector = {};
+        }
+        setControl(cameraControlVector);
+    }
+
     void Player::setControl(const Vector3 &control) {
         if (_control != control) {
             _control = control;

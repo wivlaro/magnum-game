@@ -15,6 +15,7 @@
 #include <Magnum/Trade/MaterialData.h>
 #include <Magnum/Trade/MeshData.h>
 #include <Magnum/Trade/SceneData.h>
+#include <Magnum/Trade/LightData.h>
 #include <Magnum/Trade/TextureData.h>
 #include <Magnum/Trade/CameraData.h>
 #include <Magnum/Trade/AnimationData.h>
@@ -48,7 +49,7 @@ namespace MagnumGame {
         _playerBody = loadedModel.first();
         _playerAnimator = loadedModel.second();
         loadLevel(*gltfImporter);
-        _playerBody->translate({0,1,0});
+        _playerBody->translate({0,2,0});
 
         _trackingCamera.emplace(*_cameraObject);
 
@@ -196,7 +197,7 @@ namespace MagnumGame {
                 Debug{} << "\tObject" << objectId << objectName;
 
                 for (auto cameraId: sceneData->camerasFor(objectId)) {
-                    if (auto cameraData = importer.camera(cameraId)) {\
+                    if (auto cameraData = importer.camera(cameraId)) {
                         if (auto matrix = sceneData->transformation3DFor(objectId)) {
                             _cameraObject->setTransformation(*matrix);
                         }
@@ -206,6 +207,23 @@ namespace MagnumGame {
                             cameraData->near(),
                             cameraData->far());
                         _camera->setProjectionMatrix(projection);
+                    }
+                }
+
+                for (auto light : sceneData->lightsFor(objectId)) {
+                    auto lightData = importer.light(light);
+
+                    Debug debug{};
+                    debug << "\tLight" << objectId << light
+                    << lightData->type()
+                                  << "atten" << lightData->attenuation()
+                    << "color" << lightData->color()
+                    << "intensity" << lightData->intensity()
+                    << "range" <<lightData->range()
+                    << "cone angles" << lightData->innerConeAngle() << lightData->outerConeAngle();
+
+                    if (auto matrix = sceneData->transformation3DFor(objectId)) {
+                        debug << "\tTransformation" << matrix->translation();
                     }
                 }
 

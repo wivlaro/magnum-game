@@ -33,6 +33,7 @@ namespace MagnumGame {
 
         btVector3 hitPosition() const;
 
+        void setControl(Vector2 controlVector, const Math::Matrix4<Float>& cameraObjectMatrix);
         void setControl(const Vector3& control);
 
         void die();

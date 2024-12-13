@@ -108,7 +108,7 @@ namespace MagnumGame {
                 .setSpecularColor(0x33000000_rgbaf)
                 .setLightPositions({{10.0f, 15.0f, 5.0f, 0.0f}});
 
-        ;
+
         _animatedTexturedShader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
             .setJointCount(16, 4)
             .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId | Shaders::PhongGL::Flag::DynamicPerVertexJointCount)};
@@ -158,17 +158,8 @@ namespace MagnumGame {
 
         Vector2 controlVector = getPlayerControlVector();
 
-        Vector3 cameraControlVector;
-        if (!controlVector.isZero()) {
-            cameraControlVector = _cameraObject->absoluteTransformationMatrix().transformVector({ controlVector.x(), 0, -controlVector.y() });
-            cameraControlVector.y() = 0;
-            cameraControlVector = cameraControlVector.normalized();
-        }
-        else {
-            cameraControlVector = {};
-        }
-        _gameState->getPlayer()->setControl(cameraControlVector);
-
+        auto cameraObjectMatrix = _cameraObject->absoluteTransformationMatrix();
+        _gameState->getPlayer()->setControl(controlVector, cameraObjectMatrix);
 
         _gameState->update();
 
@@ -212,7 +203,7 @@ namespace MagnumGame {
         _timeline.nextFrame();
         redraw();
 
-        { GL::Renderer::Error err; while ((err = GL::Renderer::error()) != GL::Renderer::Error::NoError) { Error() << __FILE__ << ":" << __LINE__ << "Error: " << err; } }
+        CHECK_GL_ERROR(__FILE__, __LINE__);
     }
 
 

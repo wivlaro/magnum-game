@@ -132,9 +132,10 @@ namespace MagnumGame {
 
             _camera->draw(_debugDrawables);
 
-            _debugTextRenderer->AbstractRenderer::render(debugText);
-            auto textMatrix = Matrix3::translation(Vector2{windowSize()}*Vector2{-0.45f, 0.45f});
-            renderTextBuffer(textMatrix, 0xffffff_rgbf, 0x111111_rgbf, _debugTextRenderer->mesh());
+            std::tie(_textMesh, std::ignore) =
+                Text::Renderer2D::render(*_font, _fontGlyphCache, fontSmallSize, debugText, _textVertexBuffer, _textIndexBuffer, GL::BufferUsage::DynamicDraw, Text::Alignment::BottomLeft);
+            auto textMatrix = Matrix3::translation(Vector2{windowSize()}*Vector2{-0.45f, -0.45f});
+            renderTextBuffer(textMatrix, 0xffffff_rgbf, 0x111111_rgbf, _textMesh);
         }
     }
 

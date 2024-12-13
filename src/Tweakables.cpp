@@ -18,6 +18,15 @@ namespace MagnumGame {
             TweakableValue{"Min distance", &MagnumGameApp::cameraMinDistance}
         }});
 
+        _debugModes.emplace_back(DebugMode{"Lights", 0, std::vector{
+            TweakableValue{"Ambient", &TexturedDrawable::ambientColour},
+            TweakableValue{"Directional", &TexturedDrawable::lightColour},
+            TweakableValue{"Shininess", &TexturedDrawable::shininess},
+            TweakableValue{"Specular", &TexturedDrawable::specular},
+            TweakableValue{"Direction x", &TexturedDrawable::lightDirection.x()},
+            TweakableValue{"Direction y", &TexturedDrawable::lightDirection.y()},
+            TweakableValue{"Direction z", &TexturedDrawable::lightDirection.z()},
+        }});
     }
 
 

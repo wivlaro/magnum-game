@@ -61,6 +61,13 @@ namespace MagnumGame {
         _shader.setProjectionMatrix(camera.projectionMatrix());
         _shader.setTransformationMatrix(transformation);
         _shader.setDiffuseColor(_color);
+        // _shader.setLightRanges({Constants::inf()});
+        _shader.setAmbientColor({ambientColour, ambientColour, ambientColour, 1.0f});
+        _shader.setLightColor({lightColour, lightColour, lightColour, 1.0f});
+        _shader.setSpecularColor(_color);
+        _shader.setShininess(shininess);
+        _shader.setSpecularColor({specular, specular,specular,1.0f});
+        _shader.setLightPositions({object().absoluteTransformationMatrix().inverted() * Vector4{lightDirection, 0.0f}.normalized()});
         if (_texture) {
             _shader.bindDiffuseTexture(*_texture);
             { GL::Renderer::Error err; while ((err = GL::Renderer::error()) != GL::Renderer::Error::NoError) { Error() << ("TexturedDrawable.cpp" ":" "67") << "Error: " << err << _texture << _texture->id(); } };
