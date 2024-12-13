@@ -15,7 +15,7 @@
 #include <Magnum/SceneGraph/Camera.h>
 #include <Magnum/Trade/MeshData.h>
 
-#include "GameModels.h"
+#include "GameAssets.h"
 #include "TexturedDrawable.h"
 
 namespace MagnumGame {

@@ -27,7 +27,7 @@
 
 #include "Animator.h"
 #include "GameState.h"
-#include "GameModels.h"
+#include "GameAssets.h"
 #include "MagnumGameApp.h"
 #include "Player.h"
 #include "RigidBody.h"
@@ -44,32 +44,11 @@ namespace MagnumGame {
 
         auto gltfImporter = manager.loadAndInstantiate("GltfImporter");
         assert(gltfImporter);
-        _models = std::make_unique<GameModels>(*gltfImporter);
+        _assets = std::make_unique<GameAssets>(*gltfImporter);
 
-        _playerAsset = loadAnimatedModel(*gltfImporter, "characters/character-female-b.glb");
-
-        loadLevel(*gltfImporter);
-
-        _trackingCamera.emplace(*_cameraObject);
-
-        _gameState = std::make_unique<GameState>(_timeline);
-
-        createPlayer();
-    }
-
-    void MagnumGameApp::createPlayer() {
-        _playerBody = &_scene.addChild<RigidBody>(1.0f, &_models->getPlayerShape(), _bWorld, RigidBody::CollisionLayer::Dynamic);
-        auto& animationOffset = _playerBody->addChild<Object3D>();
-        _playerAnimator = &animationOffset.addFeature<Animator>(*_playerAsset, _animatedTexturedShader, &_animatorDrawables, &_drawables);
-        animationOffset.setTransformation(Matrix4::translation({0, -0.4f, 0}));
-
-        //Prevent rotation in X & Z
-        _playerBody->rigidBody().setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
-        _gameState->setupPlayer(_playerBody, _playerAnimator);
-        _gameState->getPlayer()->resetToStart(Matrix4::translation({0,2,0}));
-        _trackingCamera->setupTargetFromCurrent(*_playerBody);
-
-        _playerAnimator->play("idle", false);
+        _gameState = std::make_unique<GameState>(_timeline, *_assets);
+        _gameState->loadLevel(*gltfImporter);
+        _gameState->setupPlayer();
     }
 
 
@@ -93,180 +72,5 @@ namespace MagnumGame {
         }
         Warning{} << "Found no" << dirName << "directory, looking in upwards from current" << Path::currentDirectory();
         return {};
-    }
-
-
-    std::unique_ptr<AnimatorAsset> MagnumGameApp::loadAnimatedModel(Trade::AbstractImporter &importer, Containers::StringView fileName) {
-
-        if (auto modelsDir = findDirectory("models")) {
-            auto filePath = Utility::Path::join(*modelsDir, fileName);
-            if (!importer.openFile(filePath)) {
-                Error{} << "Can't open" << filePath << "with" << importer.plugin();
-                return {};
-            }
-            if (importer.sceneCount() == 0) {
-                Error{} << "No scene found in" << filePath;
-                importer.close();
-                return {};
-            }
-            if (importer.sceneCount() > 1) {
-                Warning{} << "Multiple scenes found in" << filePath << ", using the default one" << importer.defaultScene() << importer.sceneName(importer.defaultScene());
-            }
-        }
-
-        return std::make_unique<AnimatorAsset>(importer);
-    }
-
-    void MagnumGameApp::loadLevel(Trade::AbstractImporter &importer) {
-        const auto colliderSuffix = "-collider";
-
-        if (auto modelsDir = findDirectory("models/levels")) {
-            auto filePath = Utility::Path::join(*modelsDir, "level-1.glb");
-            if (!importer.openFile(filePath)) {
-                Warning{} << "Can't open" << filePath << "with" << importer.plugin();
-                return;
-            }
-        }
-        _levelShapes.clear();
-        _levelMeshes.clear();
-        _meshToShapeMap.clear();
-
-        std::vector<UnsignedInt> meshToMeshCollider{};
-        for (auto meshId = 0U; meshId < importer.meshCount(); meshId++) {
-            meshToMeshCollider.push_back(meshId);
-        }
-
-        Debug{} << "Meshes:" << importer.meshCount();
-        for (auto meshId = 0U; meshId < importer.meshCount(); meshId++) {
-            auto meshName = importer.meshName(meshId);
-            Debug debug{};
-            debug << "\tMesh" << meshId << ":" << meshName;
-            auto meshData = importer.mesh(meshId);
-
-            bool isCollider = Utility::String::endsWith(colliderSuffix, meshName);
-            if (isCollider) {
-                auto normalMeshName = Utility::String::stripSuffix(meshName, colliderSuffix);
-                auto normalMeshId = importer.meshForName(normalMeshName);
-                if (normalMeshId != -1) {
-                    debug << "is a collider for" << normalMeshId << normalMeshName;
-                    meshToMeshCollider[normalMeshId] = meshId;
-                } else {
-                    debug << "is a standalone collider";
-                }
-                auto meshPositions = meshData->positions3DAsArray();
-                _levelShapes.emplace_back(InPlaceInit, meshPositions.data()->data(),
-                                          static_cast<int>(meshPositions.size()), sizeof(Vector3));
-                _levelMeshes.emplace_back(InPlaceInit, NoCreate);
-            } else {
-                auto colliderName = meshName + colliderSuffix;
-                auto colliderId = importer.meshForName(colliderName);
-                bool hasCollider = colliderId != -1;
-                if (hasCollider) {
-                    meshToMeshCollider[meshId] = colliderId;
-                    _levelShapes.emplace_back(InPlaceInit);
-                    debug << "has a collider" << colliderId << colliderName;
-                } else {
-                    auto meshPositions = meshData->positions3DAsArray();
-                    _levelShapes.emplace_back(InPlaceInit, meshPositions.data()->data(),
-                                              static_cast<int>(meshPositions.size()), sizeof(Vector3));
-                    debug << "has no explicit collider, creating from mesh";
-                }
-                _levelMeshes.emplace_back(InPlaceInit, MeshTools::compile(*meshData))->setLabel(meshName);
-            }
-        }
-
-        for (auto meshId = 0; meshId < importer.meshCount(); meshId++) {
-            auto shapeId = meshToMeshCollider[meshId];
-            auto mesh = _levelMeshes[meshId].get();
-            auto shape = _levelShapes[shapeId].get();
-            _meshToShapeMap[mesh] = shape;
-            Debug{} << "Mesh" << meshId << importer.meshName(meshId) << "has shape" << shapeId << importer.meshName(shapeId);
-        }
-
-        _levelTextures = GameModels::loadTextures(importer);
-
-        _levelMaterials = GameModels::loadMaterials(importer, _levelTextures);
-
-        for (UnsignedInt sc = 0; sc < importer.sceneCount(); sc++) {
-            Debug{} << "Scene" << sc << ":" << importer.sceneName(sc) << "(default"
-                    << importer.defaultScene() << ")";
-            auto sceneData = importer.scene(sc);
-
-            for (auto &objectId: sceneData->childrenFor(-1)) {
-                auto objectName = importer.objectName(objectId);
-                Debug{} << "\tObject" << objectId << objectName;
-
-                for (auto cameraId: sceneData->camerasFor(objectId)) {
-                    if (auto cameraData = importer.camera(cameraId)) {
-                        if (auto matrix = sceneData->transformation3DFor(objectId)) {
-                            _cameraObject->setTransformation(*matrix);
-                        }
-                        auto projection = Matrix4::perspectiveProjection(
-                            cameraData->fov(),
-                            cameraData->aspectRatio(),
-                            cameraData->near(),
-                            cameraData->far());
-                        _camera->setProjectionMatrix(projection);
-                    }
-                }
-
-                for (auto light : sceneData->lightsFor(objectId)) {
-                    auto lightData = importer.light(light);
-
-                    Debug debug{};
-                    debug << "\tLight" << objectId << light
-                    << lightData->type()
-                                  << "atten" << lightData->attenuation()
-                    << "color" << lightData->color()
-                    << "intensity" << lightData->intensity()
-                    << "range" <<lightData->range()
-                    << "cone angles" << lightData->innerConeAngle() << lightData->outerConeAngle();
-
-                    if (auto matrix = sceneData->transformation3DFor(objectId)) {
-                        debug << "\tTransformation" << matrix->translation();
-                    }
-                }
-
-                if (Utility::String::endsWith(objectName, colliderSuffix)) {
-                    continue;
-                }
-
-                for (auto &[meshId,materialId]: sceneData->meshesMaterialsFor(objectId)) {
-                    Debug{} << "\t\tMesh" << meshId << importer.meshName(meshId) << "Material" <<
-                            materialId << (materialId == -1 ? "NONE" : importer.materialName(materialId));
-
-                    auto mesh = _levelMeshes[meshId].get();
-                    auto shape = _meshToShapeMap[mesh];
-                    auto &rigidBody = _scene.addChild<RigidBody>(0.0f, shape, _bWorld, RigidBody::CollisionLayer::Terrain);
-
-
-                    if (auto matrix = sceneData->transformation3DFor(objectId)) {
-                        rigidBody.setTransformation(*matrix);
-                        rigidBody.syncPose();
-                    }
-
-                    rigidBody.addFeature<TexturedDrawable>(_levelMaterials[materialId].texture, _texturedShader, *mesh, _drawables);
-                }
-            }
-        }
-
-        CHECK_GL_ERROR(__FILE__,__LINE__);
-    }
-
-
-    [[maybe_unused]]
-    static void
-    DumpNodeTree(Trade::AbstractImporter &importer, const Trade::SceneData &sceneData, Long parentId,
-                 int level = 0) {
-        for (auto childId: sceneData.childrenFor(parentId)) {
-            auto log = Debug{};
-            for (int i = 0; i < level; i++) {
-                log << "  ";
-            }
-            log << importer.objectName(childId);
-            log << sceneData.transformation3DFor(childId);
-            Debug::newline(log);
-            DumpNodeTree(importer, sceneData, childId, level + 1);
-        }
     }
 };

@@ -15,18 +15,36 @@ namespace MagnumGame {
 
 	using namespace Magnum;
 
-    class GameModels {
+    class GameAssets {
 public:
-        explicit GameModels(Trade::AbstractImporter& gltfImporter);
+        explicit GameAssets(Trade::AbstractImporter& );
 
         static Containers::Array<GL::Texture2D> loadTextures(Trade::AbstractImporter &importer);
         static Containers::Array<MaterialAsset> loadMaterials(Trade::AbstractImporter &importer, Containers::Array<GL::Texture2D>& textures);
 
+        std::unique_ptr<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &importer,
+                                                         Containers::StringView fileName);
+
         btCapsuleShape& getPlayerShape() { return _bPlayerShape; }
 
-  private:
+        AnimatorAsset* getPlayerAsset() { return _playerAsset.get(); }
+
+        Shaders::PhongGL& getAnimatedTexturedShader() { return _animatedTexturedShader; }
+        Shaders::PhongGL& getTexturedShader() { return _texturedShader; }
+
+        Shaders::VertexColorGL3D& getVertexColorShader() { return _vertexColorShader; };
+
+    private:
+
+        Shaders::PhongGL _texturedShader{NoCreate};
+        Shaders::PhongGL _animatedTexturedShader{NoCreate};
+        Shaders::FlatGL3D _unlitAlphaShader{NoCreate};
+        Shaders::VertexColorGL3D _vertexColorShader{NoCreate};
+        Shaders::FlatGL3D _flatShader{NoCreate};
+
         btStaticPlaneShape _bGroundShape{{0,1,0},0};
         btCapsuleShape _bPlayerShape{0.125, 0.5};
+        std::unique_ptr<AnimatorAsset> _playerAsset{};
 
         static void loadModel(Trade::AbstractImporter &gltfImporter, Trade::SceneData &sceneData,
                               Containers::StringView objectName, GL::Mesh *outMesh, Matrix4x4 *outTransform,

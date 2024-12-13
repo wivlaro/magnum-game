@@ -40,12 +40,12 @@ add_executable(MagnumGameApp MagnumGameApp.cpp
         Tweakables.h
         GameState.cpp
         GameState.h
-        GameModels.cpp
-        GameModels.h
+        GameAssets.cpp
+        GameAssets.h
         Animator.cpp
         Animator.h
-        TrackingCamera.cpp
-        TrackingCamera.h
+        CameraController.cpp
+        CameraController.h
         AnimatorAsset.cpp
         AnimatorAsset.h
 )

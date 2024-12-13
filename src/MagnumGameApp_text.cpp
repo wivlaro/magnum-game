@@ -101,17 +101,12 @@ namespace MagnumGame {
         else {
             std::ostringstream oss;
 
-            if (_playerBody) {
-                auto& rigidBody = _playerBody->rigidBody();
+            if (_gameState && _gameState->getPlayer()->getBody()) {
+                auto rigidBody = _gameState->getPlayer()->getBody();
                 oss << std::setprecision(5);
                 oss << std::fixed;
-                // oss << "F=" << rigidBody.getTotalForce() + rigidBody.getGravity() << "\n";
-                // oss << "V=" << rigidBody.getLinearVelocity();
 
-                oss << "Control " << getPlayerControlVector();
-                auto onGround = OnGroundQueryResult{rigidBody}.run(_bWorld);
-
-                oss << (onGround ? "Grounded" : "Not grounded");
+                oss << "Pos " << rigidBody->transformationMatrix().translation();
             }
             else {
                 oss << "No player";
@@ -130,7 +125,7 @@ namespace MagnumGame {
         auto debugText= _tweakables->getDebugText();
         if (_debugTextRenderer && debugText.size() > 0) {
 
-            _camera->draw(_debugDrawables);
+            _gameState->getCamera()->draw(_debugDrawables);
 
             std::tie(_textMesh, std::ignore) =
                 Text::Renderer2D::render(*_font, _fontGlyphCache, fontSmallSize, debugText, _textVertexBuffer, _textIndexBuffer, GL::BufferUsage::DynamicDraw, Text::Alignment::BottomLeft);

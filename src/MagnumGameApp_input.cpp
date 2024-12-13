@@ -11,6 +11,7 @@
 
 #include "GameState.h"
 #include "OnGroundQuery.h"
+#include "Player.h"
 #include "Tweakables.h"
 
 namespace MagnumGame {
@@ -42,9 +43,7 @@ namespace MagnumGame {
             event.setAccepted();
         } else if (event.key() == Key::Space) {
 
-            if (OnGroundQueryResult{_playerBody->rigidBody()}.run(_bWorld)) {
-                _playerBody->rigidBody().applyImpulse({0,4.0f,0},{});
-            }
+            _gameState->getPlayer()->tryJump();
 
             event.setAccepted();
         } else {
@@ -93,30 +92,27 @@ namespace MagnumGame {
         }
     }
 
-    void MagnumGameApp::mousePressEvent(MouseEvent &event) {
-        if (event.button() == MouseEvent::Button::Left) {
+    void MagnumGameApp::pointerPressEvent(PointerEvent &event) {
+        if (event.pointer() == Pointer::MouseLeft || event.pointer() == Pointer::Finger) {
             _pointerDrag = false;
         }
     }
 
-    void MagnumGameApp::mouseMoveEvent(MouseMoveEvent &event) {
-        if (event.buttons() & MouseMoveEvent::Button::Left) {
+    void MagnumGameApp::pointerMoveEvent(PointerMoveEvent &event) {
+        if (event.pointer() == Pointer::MouseLeft || event.pointer() == Pointer::Finger) {
             auto eventPosDelta = event.relativePosition();
             if (eventPosDelta.dot() > 4) {
                 _pointerDrag = true;
             }
-            if (_pointerDrag && _trackingCamera) {
-                auto delta_yaw = 1.0_degf * eventPosDelta.x();
-                auto delta_pitch = 1.0_degf * eventPosDelta.y();
-                _trackingCamera->rotateBy(delta_yaw, delta_pitch);
-            }
+
+            _gameState->getCamera()->rotateFromPointer(eventPosDelta);
         }
 
     }
 
-    UnsignedInt MagnumGameApp::pickObjectIdAt(Vector2i eventPosition) {
-        const Vector2i position = eventPosition*Vector2{framebufferSize()}/Vector2{windowSize()};
-        const Vector2i fbPosition{static_cast<int>(Math::round(position.x())), static_cast<int>(Math::round(GL::defaultFramebuffer.viewport().sizeY() - position.y() - 1))};
+    UnsignedInt MagnumGameApp::pickObjectIdAt(Vector2 eventPosition) {
+        const Vector2i position = eventPosition * framebufferSize() / windowSize();
+        const Vector2i fbPosition{position.x(), GL::defaultFramebuffer.viewport().sizeY() - position.y() - 1};
 
         /* Read object ID at given click position, and then switch to the color
            attachment again so drawEvent() blits correct buffer */
@@ -130,7 +126,7 @@ namespace MagnumGame {
         return data.pixels<UnsignedInt>()[0][0];
     }
 
-    void MagnumGameApp::mouseReleaseEvent(MouseEvent &event) {
+    void MagnumGameApp::pointerReleaseEvent(PointerEvent &event) {
         if (_pointerDrag) {
             _pointerDrag = false;
             return;

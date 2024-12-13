@@ -14,7 +14,7 @@
 #include <Magnum/MeshTools/Compile.h>
 #include <Corrade/Containers/StructuredBindings.h>
 
-#include "GameModels.h"
+#include "GameAssets.h"
 
 namespace MagnumGame {
  AnimatorAsset::SkinAsset::SkinAsset(const Containers::ArrayView<const UnsignedInt> &joints,
@@ -26,8 +26,8 @@ namespace MagnumGame {
 
     AnimatorAsset::AnimatorAsset(Trade::AbstractImporter &importer)
         : _meshes(DefaultInit, importer.meshCount())
-    , _textures(GameModels::loadTextures(importer))
-    , _materials(GameModels::loadMaterials(importer, _textures))
+    , _textures(GameAssets::loadTextures(importer))
+    , _materials(GameAssets::loadMaterials(importer, _textures))
     , _skins{NoInit, importer.skin3DCount()}
     {
         auto sceneId = importer.defaultScene();

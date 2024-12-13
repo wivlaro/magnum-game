@@ -43,6 +43,9 @@ namespace MagnumGame {
 
         btDynamicsWorld& getWorld();
 
+        void tryJump();
+
+        RigidBody* getBody() { return _pBody; }
 
     private:
         std::string _name;

@@ -6,7 +6,7 @@
 #include "Player.h"
 
 #include "DebugLines.h"
-#include "RandomUtil.h"
+#include "OnGroundQuery.h"
 #include "TexturedDrawable.h"
 #include "RigidBody.h"
 
@@ -91,5 +91,12 @@ namespace MagnumGame {
 
     btDynamicsWorld & Player::getWorld() {
         return _pBody->getWorld();
+    }
+
+    void Player::tryJump() {
+
+        if (OnGroundQueryResult{_pBody->rigidBody()}.run(_pBody->getWorld())) {
+            _pBody->rigidBody().applyImpulse({0,4.0f,0},{});
+        }
     }
 }

@@ -26,8 +26,6 @@ namespace MagnumGame {
 
         _debugLinesMesh.addVertexBuffer(_debugLinesBuffer, 0, 0, Shaders::VertexColorGL3D::Position{}, Shaders::VertexColorGL3D::Color4{});
 
-        _debugDraw = BulletIntegration::DebugDraw{};
-        _debugDraw.setMode(BulletIntegration::DebugDraw::Mode::DrawWireframe);
 
         _tweakables = std::make_unique<Tweakables>();
 
@@ -42,12 +40,11 @@ namespace MagnumGame {
     }
 
     void MagnumGameApp::renderDebug() {
-        auto transformationProjectionMatrix = _camera->projectionMatrix() * _camera->cameraMatrix();
+        auto transformationProjectionMatrix = _gameState->getCamera()->getTransformationProjectionMatrix();
         if (_drawDebug) {
             GL::Renderer::setDepthFunction(GL::Renderer::DepthFunction::LessOrEqual);
 
-            _debugDraw.setTransformationProjectionMatrix(transformationProjectionMatrix);
-            _bWorld.debugDrawWorld();
+            _gameState->renderDebug(transformationProjectionMatrix);
 
             GL::Renderer::setDepthFunction(GL::Renderer::DepthFunction::Less);
         }
@@ -55,8 +52,9 @@ namespace MagnumGame {
         if (_tweakables && _tweakables->hasActiveDebugMode()) {
             _debugLinesBuffer.setData(DebugLines::LineData, GL::BufferUsage::DynamicDraw);
             _debugLinesMesh.setCount(DebugLines::LineData.size());
-            _vertexColorShader.setTransformationProjectionMatrix(transformationProjectionMatrix);
-            _vertexColorShader.draw(_debugLinesMesh);
+            auto& vertexColorShader = _assets->getVertexColorShader();
+            vertexColorShader.setTransformationProjectionMatrix(transformationProjectionMatrix);
+            vertexColorShader.draw(_debugLinesMesh);
         }
         DebugLines::Clear();
     }

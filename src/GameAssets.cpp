@@ -1,4 +1,4 @@
-#include "GameModels.h"
+#include "GameAssets.h"
 #include <memory>
 #include <Corrade/Containers/GrowableArray.h>
 #include <Magnum/MeshTools/Compile.h>
@@ -11,6 +11,8 @@
 #include <Magnum/GL/Texture.h>
 #include <Magnum/GL/TextureFormat.h>
 #include <Magnum/Math/Matrix4.h>
+#include <Magnum/Math/Vector3.h>
+#include <Magnum/Math/Color.h>
 #include <Magnum/ImageView.h>
 #include <Corrade/Utility/Path.h>
 
@@ -18,12 +20,33 @@
 
 namespace MagnumGame {
 
+    using namespace Magnum::Math::Literals;
 
-    GameModels::GameModels(Trade::AbstractImporter &) {
+    GameAssets::GameAssets(Trade::AbstractImporter& importer) {
 
+        _unlitAlphaShader = Shaders::FlatGL3D{Shaders::FlatGL3D::Configuration{}.setFlags(Shaders::FlatGL3D::Flag::Textured)};
+
+        _texturedShader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
+            .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId )};
+        _texturedShader.setAmbientColor(0x111111_rgbf)
+                .setSpecularColor(0x33000000_rgbaf)
+                .setLightPositions({{10.0f, 15.0f, 5.0f, 0.0f}});
+
+
+        _animatedTexturedShader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
+            .setJointCount(16, 4)
+            .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId | Shaders::PhongGL::Flag::DynamicPerVertexJointCount)};
+        _animatedTexturedShader.setAmbientColor(0x111111_rgbf)
+                .setSpecularColor(0x33000000_rgbaf)
+                .setLightPositions({{10.0f, 15.0f, 5.0f, 0.0f}});
+
+        _vertexColorShader = Shaders::VertexColorGL3D{};
+        _flatShader = Shaders::FlatGL3D{};
+
+        _playerAsset = loadAnimatedModel(importer, "characters/character-female-b.glb");
     }
 
-    void GameModels::loadModel(Trade::AbstractImporter& gltfImporter,
+    void GameAssets::loadModel(Trade::AbstractImporter& gltfImporter,
                                   Trade::SceneData &sceneData,
                                   Containers::StringView objectName, GL::Mesh *outMesh, Matrix4x4 *outTransform,
                                   std::shared_ptr<GL::Texture2D> *outTexture, btConvexHullShape *outConvexHullShape) {
@@ -75,7 +98,7 @@ namespace MagnumGame {
     }
 
 
-    Containers::Array<GL::Texture2D> GameModels::loadTextures(Trade::AbstractImporter &importer) {
+    Containers::Array<GL::Texture2D> GameAssets::loadTextures(Trade::AbstractImporter &importer) {
         Containers::Array<GL::Texture2D> textures;
         arrayReserve(textures, importer.textureCount());
         Debug{} << "Textures:" << importer.textureCount();
@@ -100,7 +123,7 @@ namespace MagnumGame {
         return textures;
     }
 
-    Containers::Array<MaterialAsset> GameModels::loadMaterials(Trade::AbstractImporter &importer, Containers::Array<GL::Texture2D>& textures) {
+    Containers::Array<MaterialAsset> GameAssets::loadMaterials(Trade::AbstractImporter &importer, Containers::Array<GL::Texture2D>& textures) {
         Containers::Array<MaterialAsset> materials{};
         arrayReserve(materials, importer.materialCount());
         Debug{} << "Materials:" << importer.materialCount();
@@ -122,5 +145,29 @@ namespace MagnumGame {
             Debug{} << "\tMaterial" << materialId << " texture ID" << texture->id() << " address " << materials[materialId].texture;
         }
         return materials;
+    }
+
+
+
+
+    std::unique_ptr<AnimatorAsset> GameAssets::loadAnimatedModel(Trade::AbstractImporter &importer, Containers::StringView fileName) {
+
+        if (auto modelsDir = MagnumGameApp::findDirectory("models")) {
+            auto filePath = Utility::Path::join(*modelsDir, fileName);
+            if (!importer.openFile(filePath)) {
+                Error{} << "Can't open" << filePath << "with" << importer.plugin();
+                return {};
+            }
+            if (importer.sceneCount() == 0) {
+                Error{} << "No scene found in" << filePath;
+                importer.close();
+                return {};
+            }
+            if (importer.sceneCount() > 1) {
+                Warning{} << "Multiple scenes found in" << filePath << ", using the default one" << importer.defaultScene() << importer.sceneName(importer.defaultScene());
+            }
+        }
+
+        return std::make_unique<AnimatorAsset>(importer);
     }
 }

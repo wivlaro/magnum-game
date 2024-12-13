@@ -37,7 +37,7 @@
 
 #include "DebugLines.h"
 #include "GameState.h"
-#include "GameModels.h"
+#include "GameAssets.h"
 
 #ifdef BT_USE_DOUBLE_PRECISION
 #error sorry, this example does not support Bullet with double precision enabled
@@ -82,41 +82,11 @@ namespace MagnumGame {
 
         CHECK_GL_ERROR(__FILE__,__LINE__);
 
-        _cameraObject = &_scene.addChild<Object3D>(nullptr)
-            .translate(Vector3::zAxis(30.0f))
-            .rotateX(-90.0_degf);
-        _cameraDefaultRotation = Quaternion::fromMatrix(_cameraObject->transformation().rotation());
-        _camera = &_cameraObject->addFeature<SceneGraph::Camera3D>();
-        _camera->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
-            .setProjectionMatrix(Matrix4::perspectiveProjection(_cameraFieldOfView, 1.0f, 0.1f, 100.0f))
-            .setViewport(GL::defaultFramebuffer.viewport().size());
-
-        _unlitAlphaShader = Shaders::FlatGL3D{Shaders::FlatGL3D::Configuration{}.setFlags(Shaders::FlatGL3D::Flag::Textured)};
-
-        _texturedShader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
-                                                   .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId )};
-        _texturedShader.setAmbientColor(0x111111_rgbf)
-                .setSpecularColor(0x33000000_rgbaf)
-                .setLightPositions({{10.0f, 15.0f, 5.0f, 0.0f}});
-
-
-        _animatedTexturedShader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
-            .setJointCount(16, 4)
-            .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId | Shaders::PhongGL::Flag::DynamicPerVertexJointCount)};
-        _animatedTexturedShader.setAmbientColor(0x111111_rgbf)
-                .setSpecularColor(0x33000000_rgbaf)
-                .setLightPositions({{10.0f, 15.0f, 5.0f, 0.0f}});
-
-        _vertexColorShader = Shaders::VertexColorGL3D{};
-        _flatShader = Shaders::FlatGL3D{};
-
         GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
         GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
         GL::Renderer::enable(GL::Renderer::Feature::PolygonOffsetFill);
         GL::Renderer::setPolygonOffset(2.0f, 0.5f);
 
-        _bWorld.setGravity({0.0f, -10.0f, 0.0f});
-        _bWorld.setDebugDrawer(&_debugDraw);
 
         setupDebug();
         setup();
@@ -137,21 +107,12 @@ namespace MagnumGame {
             .bind();
 
 
-        if (auto player = _gameState->getPlayer()) {
-            Vector2 controlVector = getPlayerControlVector();
-            auto cameraObjectMatrix = _cameraObject->absoluteTransformationMatrix();
-            player->setControl(controlVector, cameraObjectMatrix);
-        }
+        Vector2 controlVector = getPlayerControlVector();
+            _gameState->setControl(controlVector);
 
         _gameState->update();
 
-        _bWorld.stepSimulation(_timeline.previousFrameDuration(), 5);
 
-        if (_trackingCamera) {
-            _trackingCamera->update(_timeline.previousFrameDuration());
-        }
-
-        _camera->draw(_animatorDrawables);
 
         //Object picking support
         _framebuffer.mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
@@ -159,13 +120,12 @@ namespace MagnumGame {
         GL::Renderer::enable(GL::Renderer::Feature::Blending);
         GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha, GL::Renderer::BlendFunction::OneMinusSourceAlpha);
 
-        _camera->draw(_drawables);
+        _gameState->drawOpaque();
 
         _framebuffer.mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
                                 {Shaders::PhongGL::ObjectIdOutput,  GL::Framebuffer::DrawAttachment::None}});
 
-        //Might want to sort the drawables along the camera Z axis
-        _camera->draw(_transparentDrawables);
+        _gameState->drawTransparent();
 
 
         renderDebug();

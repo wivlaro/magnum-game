@@ -38,13 +38,13 @@
 #include "AnimatorAsset.h"
 #include "MagnumGameCommon.h"
 #include "RigidBody.h"
-#include "TrackingCamera.h"
+#include "CameraController.h"
 
 namespace MagnumGame {
     class GameState;
     class Tweakables;
     class Player;
-    class GameModels;
+    class GameAssets;
     class Animator;
     struct AnimatorAsset;
 
@@ -74,9 +74,10 @@ namespace MagnumGame {
 
         void keyPressEvent(KeyEvent &event) override;
         void keyReleaseEvent(KeyEvent &event) override;
-        void mousePressEvent(MouseEvent &event) override;
-        void mouseReleaseEvent(MouseEvent &event) override;
-        void mouseMoveEvent(MouseMoveEvent &event) override;
+
+        void pointerPressEvent(PointerEvent &event) override;
+        void pointerReleaseEvent(PointerEvent &event) override;
+        void pointerMoveEvent(PointerMoveEvent &event) override;
 
 #ifdef MAGNUM_SDL2APPLICATION_MAIN
         void anyEvent(SDL_Event &event) override;
@@ -91,12 +92,6 @@ namespace MagnumGame {
         GL::Mesh _debugLinesMesh{NoCreate};
         GL::Buffer _debugLinesBuffer{NoCreate};
 
-        std::vector<Containers::Pointer<GL::Mesh>> _levelMeshes{};
-        std::vector<Containers::Pointer<btConvexHullShape>> _levelShapes{};
-        Containers::Array<GL::Texture2D> _levelTextures{};
-        Containers::Array<MaterialAsset> _levelMaterials{};
-        std::map<GL::Mesh*, btConvexHullShape*> _meshToShapeMap{};
-
 
         PluginManager::Manager<Text::AbstractFont> _fontManager;
         Containers::Pointer<Text::AbstractFont> _font;
@@ -106,53 +101,23 @@ namespace MagnumGame {
         GL::Buffer _textVertexBuffer{NoCreate}, _textIndexBuffer{NoCreate};
         GL::Mesh _textMesh{NoCreate};
 
-        std::unique_ptr<GameModels> _models;
-
-        Shaders::PhongGL _texturedShader{NoCreate};
-        Shaders::PhongGL _animatedTexturedShader{NoCreate};
-        Shaders::FlatGL3D _unlitAlphaShader{NoCreate};
-        BulletIntegration::DebugDraw _debugDraw{NoCreate};
-        Shaders::VertexColorGL3D _vertexColorShader{NoCreate};
-        Shaders::FlatGL3D _flatShader{NoCreate};
+        std::unique_ptr<GameAssets> _assets;
 
         std::unique_ptr<GameState> _gameState;
 
-        btDbvtBroadphase _bBroadphase;
-        btDefaultCollisionConfiguration _bCollisionConfig;
-        btCollisionDispatcher _bDispatcher{&_bCollisionConfig};
-        btSequentialImpulseConstraintSolver _bSolver;
-
-        /* The world has to live longer than the scene because RigidBody
-           instances have to remove themselves from it on destruction */
-        btDiscreteDynamicsWorld _bWorld{&_bDispatcher, &_bBroadphase, &_bSolver, &_bCollisionConfig};
-
-        Scene3D _scene;
-        SceneGraph::Camera3D *_camera;
-        Deg _cameraFieldOfView{35.0_degf};
-        SceneGraph::DrawableGroup3D _drawables{};
-        SceneGraph::DrawableGroup3D _animatorDrawables{};
-        SceneGraph::DrawableGroup3D _transparentDrawables{};
         Timeline _timeline;
 
-        Object3D *_cameraObject;
-        Containers::Pointer<TrackingCamera> _trackingCamera;
 
         bool _pointerDrag;
-        Quaternion _cameraDefaultRotation;
 
         bool _drawDebug{false};
 
-        std::unique_ptr<AnimatorAsset> _playerAsset{};
         std::unique_ptr<Tweakables> _tweakables;
-        RigidBody* _playerBody{};
-        Animator* _playerAnimator{};
 
         int controllerKeysHeld;
 
         std::unique_ptr<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &pointer,
                                                          Containers::StringView fileName);
-
-        void createPlayer();
 
         void setup();
 
@@ -173,7 +138,7 @@ namespace MagnumGame {
 
         static float getTweakAmount(const KeyEvent &event, float value);
 
-        UnsignedInt pickObjectIdAt(Vector2i eventPosition);
+        UnsignedInt pickObjectIdAt(Vector2 eventPosition);
 
         void addDebugDrawable(RigidBody &playerRigidBody);
 
