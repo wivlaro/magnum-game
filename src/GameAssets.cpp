@@ -1,5 +1,4 @@
 #include "GameAssets.h"
-#include <memory>
 #include <Corrade/Containers/GrowableArray.h>
 #include <Magnum/MeshTools/Compile.h>
 #include <Magnum/Trade/SceneData.h>
@@ -150,7 +149,7 @@ namespace MagnumGame {
 
 
 
-    std::unique_ptr<AnimatorAsset> GameAssets::loadAnimatedModel(Trade::AbstractImporter &importer, Containers::StringView fileName) {
+    Containers::Pointer<AnimatorAsset> GameAssets::loadAnimatedModel(Trade::AbstractImporter &importer, Containers::StringView fileName) {
 
         if (auto modelsDir = MagnumGameApp::findDirectory("models")) {
             auto filePath = Utility::Path::join(*modelsDir, fileName);
@@ -168,6 +167,6 @@ namespace MagnumGame {
             }
         }
 
-        return std::make_unique<AnimatorAsset>(importer);
+        return Containers::Pointer<AnimatorAsset>(InPlaceInit, importer);
     }
 }

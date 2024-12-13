@@ -101,9 +101,9 @@ namespace MagnumGame {
         GL::Buffer _textVertexBuffer{NoCreate}, _textIndexBuffer{NoCreate};
         GL::Mesh _textMesh{NoCreate};
 
-        std::unique_ptr<GameAssets> _assets;
+        Containers::Pointer<GameAssets> _assets;
 
-        std::unique_ptr<GameState> _gameState;
+        Containers::Pointer<GameState> _gameState;
 
         Timeline _timeline;
 
@@ -112,11 +112,11 @@ namespace MagnumGame {
 
         bool _drawDebug{false};
 
-        std::unique_ptr<Tweakables> _tweakables;
+        Containers::Pointer<Tweakables> _tweakables;
 
         int controllerKeysHeld;
 
-        std::unique_ptr<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &pointer,
+        Containers::Pointer<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &pointer,
                                                          Containers::StringView fileName);
 
         void setup();

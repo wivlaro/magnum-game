@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include <BulletCollision/CollisionShapes/btCapsuleShape.h>
 #include <BulletCollision/CollisionShapes/btStaticPlaneShape.h>
 
@@ -22,7 +20,7 @@ public:
         static Containers::Array<GL::Texture2D> loadTextures(Trade::AbstractImporter &importer);
         static Containers::Array<MaterialAsset> loadMaterials(Trade::AbstractImporter &importer, Containers::Array<GL::Texture2D>& textures);
 
-        std::unique_ptr<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &importer,
+        Containers::Pointer<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &importer,
                                                          Containers::StringView fileName);
 
         btCapsuleShape& getPlayerShape() { return _bPlayerShape; }
@@ -44,7 +42,7 @@ public:
 
         btStaticPlaneShape _bGroundShape{{0,1,0},0};
         btCapsuleShape _bPlayerShape{0.125, 0.5};
-        std::unique_ptr<AnimatorAsset> _playerAsset{};
+        Containers::Pointer<AnimatorAsset> _playerAsset{};
 
         static void loadModel(Trade::AbstractImporter &gltfImporter, Trade::SceneData &sceneData,
                               Containers::StringView objectName, GL::Mesh *outMesh, Matrix4x4 *outTransform,

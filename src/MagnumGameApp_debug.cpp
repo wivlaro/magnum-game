@@ -27,7 +27,7 @@ namespace MagnumGame {
         _debugLinesMesh.addVertexBuffer(_debugLinesBuffer, 0, 0, Shaders::VertexColorGL3D::Position{}, Shaders::VertexColorGL3D::Color4{});
 
 
-        _tweakables = std::make_unique<Tweakables>();
+        _tweakables.emplace();
 
         _debugResourceManager.set(DebugRendererGroup, DebugTools::ObjectRendererOptions{}.setSize(3.f));
     }

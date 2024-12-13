@@ -66,7 +66,7 @@ namespace MagnumGame {
         _shader.setDiffuseColor(_color);
         // _shader.setLightRanges({Constants::inf()});
         _shader.setAmbientColor({ambientColour, ambientColour, ambientColour, 1.0f});
-        _shader.setLightColor({lightColour, lightColour, lightColour, 1.0f});
+        _shader.setLightColors({Color4{lightColour, lightColour, lightColour, 1.0f}});
         _shader.setSpecularColor(_color);
         _shader.setShininess(shininess);
         _shader.setSpecularColor({specular, specular,specular,1.0f});

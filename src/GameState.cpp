@@ -194,7 +194,7 @@ namespace MagnumGame {
         //Prevent rotation in X & Z
         rigidBody->rigidBody().setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
 
-        _player = std::make_unique<Player>("Someone", rigidBody, animator);
+        _player.emplace("Someone", rigidBody, animator);
         _player->resetToStart(Matrix4::translation({0,2,0}));
         _cameraController->setupTargetFromCurrent(*rigidBody);
 

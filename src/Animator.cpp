@@ -46,7 +46,7 @@ namespace MagnumGame {
         instantiateBone(getRootBone(), asset._rootBone, 0);
 
         std::map<const AnimatorAsset::SkinAsset*, Skin*> skinMap;
-        for (auto skinIndex = 0; skinIndex < asset._skins.size(); ++skinIndex) {
+        for (auto skinIndex = 0U; skinIndex < asset._skins.size(); ++skinIndex) {
             auto& skinAsset = asset._skins[skinIndex];
             auto& skin = *new (&_skins[skinIndex]) Skin{skinAsset};
             Debug{} << "Skin setup asset=" << &skinAsset << "skin" << &skin << "matrices" << &skin.boneMatrices() << "data @" << skin.boneMatrices().data() << "size" << skin.boneMatrices().size();

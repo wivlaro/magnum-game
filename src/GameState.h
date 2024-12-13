@@ -20,7 +20,7 @@ namespace MagnumGame {
 
         void setupPlayer();
 
-        Player* getPlayer() const { return _player.get(); }
+        Player* getPlayer() { return _player.get(); }
 
         btCollisionWorld& getWorld() { return _bWorld; }
 
@@ -63,7 +63,7 @@ namespace MagnumGame {
         Scene3D _scene;
         Containers::Pointer<CameraController> _cameraController;
 
-        std::unique_ptr<Player> _player;
+        Containers::Pointer<Player> _player;
 
         bool _isStarted = false;
 

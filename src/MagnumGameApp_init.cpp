@@ -44,9 +44,9 @@ namespace MagnumGame {
 
         auto gltfImporter = manager.loadAndInstantiate("GltfImporter");
         assert(gltfImporter);
-        _assets = std::make_unique<GameAssets>(*gltfImporter);
+        _assets.emplace(*gltfImporter);
 
-        _gameState = std::make_unique<GameState>(_timeline, *_assets);
+        _gameState.emplace(_timeline, *_assets);
         _gameState->loadLevel(*gltfImporter);
         _gameState->setupPlayer();
     }
