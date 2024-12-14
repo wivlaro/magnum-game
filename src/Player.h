@@ -47,12 +47,16 @@ namespace MagnumGame {
 
         RigidBody* getBody() { return _pBody; }
 
+        bool isOnGround() const { return _isOnGround; }
+
     private:
         std::string _name;
         RigidBody *_pBody;
         Animator *_animator;
         IEnableDrawable *_pBodyDrawable{};
         Vector3 _control{};
+        bool _markJumpFrame;
+        bool _isOnGround;
     };
 
 }

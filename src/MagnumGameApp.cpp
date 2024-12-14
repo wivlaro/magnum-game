@@ -101,6 +101,26 @@ namespace MagnumGame {
         _gameState->loadLevel(*gltfImporter);
         _gameState->setupPlayer();
 
+        _tweakables->addDebugMode("Friction", 0, {
+                                      {
+                                          "Friction", [&]() {
+                                              return _gameState->getPlayer()->getBody()->rigidBody().getFriction();
+                                          },
+                                          [&](float value) {
+                                              _gameState->getPlayer()->getBody()->rigidBody().setFriction(value);
+                                          }
+                                      },
+                                      {
+                                          "Rolling Friction", [&]() {
+                                              return _gameState->getPlayer()->getBody()->rigidBody().
+                                                      getRollingFriction();
+                                          },
+                                          [&](float value) {
+                                              _gameState->getPlayer()->getBody()->rigidBody().setRollingFriction(value);
+                                          }
+                                      }
+                                  });
+
 #ifndef CORRADE_TARGET_EMSCRIPTEN
         setSwapInterval(0);
         setMinimalLoopPeriod(8.0_msec);

@@ -9,7 +9,7 @@
 namespace MagnumGame {
     class Tweakables {
     public:
-        Tweakables();
+        explicit Tweakables();
 
         /**
          * @brief Named pointer for tweaking a configurable float value at runtime
@@ -38,8 +38,9 @@ namespace MagnumGame {
             void tweakBy(int sign, int powerAdjust) {
                 float value = get();
 
+                float absValue = std::max(abs(value), 0.00001f);
                 //Compute the nearest sensible power of 10 to for adjusting a value
-                set(value + sign * pow(10, round(log10(abs(value))) + powerAdjust));
+                set(value + sign * pow(10, round(log10(absValue)) + powerAdjust));
             }
 
         private:

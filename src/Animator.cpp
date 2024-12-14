@@ -107,12 +107,12 @@ namespace MagnumGame {
             auto targetBone = asset._bonesById.find(animatedObjectId);
 
             if (targetBone != asset._bonesById.end()) {
-                Debug{} << "Track" << animationName << "track" << trackIndex
-                        << "target" << animationData.trackTarget(trackIndex)
-                        << targetBone->second.name
-                        << "type" << animationData.trackType(trackIndex)
-                        << "(name" << animationData.trackTargetName(trackIndex) << ")"
-                        << "result" << animationData.trackResultType(trackIndex);
+                // Debug{} << "Track" << animationName << "track" << trackIndex
+                //         << "target" << animationData.trackTarget(trackIndex)
+                //         << targetBone->second.name
+                //         << "type" << animationData.trackType(trackIndex)
+                //         << "(name" << animationData.trackTargetName(trackIndex) << ")"
+                //         << "result" << animationData.trackResultType(trackIndex);
                 addAnimationTrack(animationData, trackIndex, targetBone->second, boneMap);
             }
             else {

@@ -3,21 +3,17 @@
 #include <sstream>
 #include <Corrade/PluginManager/Manager.h>
 #include <Corrade/Utility/Path.h>
-#include <Magnum/Timeline.h>
 #include <Magnum/Math/Matrix3.h>
 #include <Magnum/Text/AbstractFont.h>
 #include <Magnum/Text/Alignment.h>
 #include <Magnum/Text/Renderer.h>
 #include <Magnum/TextureTools/Atlas.h>
 #include <Magnum/Math/Color.h>
-#include <Magnum/SceneGraph/Camera.h>
-
 
 #include "GameState.h"
 #include "MagnumGameApp.h"
 #include "Player.h"
 #include "Tweakables.h"
-#include "OnGroundQuery.h"
 
 namespace MagnumGame {
 
@@ -106,7 +102,15 @@ namespace MagnumGame {
                 oss << std::setprecision(5);
                 oss << std::fixed;
 
+                auto onGround = _gameState->getPlayer()->isOnGround();
+
                 oss << "Pos " << rigidBody->transformationMatrix().translation();
+                if (onGround) {
+                    oss << " OnGround";
+                }
+                else {
+                    oss << " OffGround";
+                }
             }
             else {
                 oss << "No player";

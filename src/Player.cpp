@@ -30,17 +30,40 @@ namespace MagnumGame {
     bool Player::isAlive() const { return _pBody->rigidBody().isInWorld(); }
 
     void Player::update(Float deltaTime) {
+        auto& rigidBody = _pBody->rigidBody();
+        auto velocity = btVector3(_control * WalkSpeed);
+        // auto motion = velocity * deltaTime;
+
+        auto currentVelocity = rigidBody.getLinearVelocity();
+        velocity.setY(currentVelocity.y());
+        rigidBody.setLinearVelocity(btVector3(velocity));
 
         if (!_control.isZero()) {
-            auto motion = _control * WalkSpeed * deltaTime;
             auto position = _pBody->transformation().translation();
-
             auto matrix = Matrix4::lookAt({0,0,0}, -_control, {0,1,0});
-            matrix.translation() = position + motion;
-
+            matrix.translation() = position;
             _pBody->setTransformation(matrix);
             _pBody->syncPose();
         }
+
+        _isOnGround = OnGroundQueryResult{rigidBody}.run(_pBody->getWorld());
+        if (_markJumpFrame && _isOnGround) {
+            rigidBody.applyImpulse({0,4.0f,0},{});
+        }
+        _markJumpFrame = false;
+
+        if (_animator != nullptr) {
+            if (!_isOnGround) {
+                _animator->play("jump", false);
+            }
+            else if (_control.isZero()) {
+                _animator->play("idle", false);
+            }
+            else {
+                _animator->play("walk", false);
+            }
+        }
+
     }
 
     Vector3 Player::getPosition() const { return _pBody->transformation().translation(); }
@@ -62,15 +85,6 @@ namespace MagnumGame {
     void Player::setControl(const Vector3 &control) {
         if (_control != control) {
             _control = control;
-
-            if (_animator != nullptr) {
-                if (_control.isZero()) {
-                    _animator->play("idle", false);
-                }
-                else {
-                    _animator->play("walk", false);
-                }
-            }
         }
     }
 
@@ -95,8 +109,6 @@ namespace MagnumGame {
 
     void Player::tryJump() {
 
-        if (OnGroundQueryResult{_pBody->rigidBody()}.run(_pBody->getWorld())) {
-            _pBody->rigidBody().applyImpulse({0,4.0f,0},{});
-        }
+        _markJumpFrame = true;
     }
 }

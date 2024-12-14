@@ -196,10 +196,13 @@ namespace MagnumGame {
                                                                    &_animatorDrawables, &_opaqueDrawables);
         animationOffset.setTransformation(Matrix4::translation({0, -0.4f, 0}));
 
+        auto& rb = rigidBody->rigidBody();
         //Prevent rotation in X & Z
-        rigidBody->rigidBody().setAngularFactor(btVector3(0.0f, 0.5f, 0.0f));
-        Debug{} << "Friction: " << rigidBody->rigidBody().getFriction() << "rolling friction" << rigidBody->rigidBody().getRollingFriction();
-        rigidBody->rigidBody().setRollingFriction(0.5f);
+        rb.setAngularFactor(btVector3(0.0f, 0.0f, 0.0f));
+        rb.setFriction(0.5f);
+        rb.setRollingFriction(0.5f);
+
+        Debug{} << "Friction: " << rb.getFriction() << "rolling friction" << rb.getRollingFriction();
 
         _player.emplace("Someone", rigidBody, animator);
         _player->resetToStart(Matrix4::translation({0,2,0}));
