@@ -2,11 +2,23 @@
 
 #include <Magnum/Math/Functions.h>
 #include <Corrade/Containers/Optional.h>
+#include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/Trade/CameraData.h>
+#include <Magnum/SceneGraph/Scene.h>
 
 namespace MagnumGame {
-    CameraController::CameraController(Object3D &cameraObject, SceneGraph::Camera3D& camera)
-        : _cameraObject(cameraObject), _camera(camera), _targetObject{}, _distance(10) {
+    CameraController::CameraController(Scene3D &scene)
+        : _cameraObject(scene.addChild<Object3D>(nullptr))
+          , _camera(_cameraObject.addFeature<SceneGraph::Camera3D>())
+          , _targetObject{}
+          , _distance(10) {
+
+        _cameraObject
+                .translate(Vector3::zAxis(30.0f))
+                .rotateX(-90.0_degf);
+        _camera.setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
+                .setProjectionMatrix(Matrix4::perspectiveProjection(30.0_degf, 1.0f, 0.1f, 100.0f))
+                .setViewport(GL::defaultFramebuffer.viewport().size());
     }
 
     void CameraController::setupTargetFromCurrent(Object3D &target) {
@@ -25,8 +37,8 @@ namespace MagnumGame {
         rotateBy(delta_yaw, delta_pitch);
     }
 
-    void CameraController::loadCameraData(const Containers::Optional<Matrix4>& transformation,
-        const Trade::CameraData& cameraData) {
+    void CameraController::loadCameraData(const Containers::Optional<Matrix4> &transformation,
+                                          const Trade::CameraData &cameraData) {
         if (transformation) {
             _cameraObject.setTransformation(*transformation);
         }
@@ -35,6 +47,10 @@ namespace MagnumGame {
             cameraData.aspectRatio(),
             cameraData.near(),
             cameraData.far()));
+    }
+
+    void CameraController::adjustZoom(float deltaY) {
+        _distance -= deltaY * 0.25f;
     }
 
     void CameraController::rotateBy(Deg deltaYaw, Deg deltaPitch) {
@@ -68,6 +84,6 @@ namespace MagnumGame {
         // auto smoothHalfLife = 1.0f;
         // cameraPosition = lerp(_cameraObject.transformation().translation(), cameraPosition, smoothHalfLife * deltaTime);
 
-        _cameraObject.setTransformation(Matrix4::lookAt(cameraPosition, targetPosition, {0,1,0}));
+        _cameraObject.setTransformation(Matrix4::lookAt(cameraPosition, targetPosition, {0, 1, 0}));
     }
 }

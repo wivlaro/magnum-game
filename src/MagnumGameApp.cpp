@@ -62,10 +62,10 @@ namespace MagnumGame {
 #ifndef CORRADE_TARGET_EMSCRIPTEN
             glConf.setSampleCount(dpiScaling.max() < 2.0f ? 8 : 2);
 #endif
-            if (!tryCreate(conf, glConf))
+            if (!tryCreate(conf, glConf)) {
                 create(conf, glConf.setSampleCount(0));
+            }
         }
-
 
         _framebuffer = GL::Framebuffer{GL::defaultFramebuffer.viewport()};
         _color = GL::Renderbuffer{};
@@ -87,9 +87,19 @@ namespace MagnumGame {
         GL::Renderer::enable(GL::Renderer::Feature::PolygonOffsetFill);
         GL::Renderer::setPolygonOffset(2.0f, 0.5f);
 
+        _tweakables.emplace();
 
-        setupDebug();
-        setup();
+        PluginManager::Manager<Trade::AbstractImporter> manager;
+
+        setupTextRenderer();
+
+        auto gltfImporter = manager.loadAndInstantiate("GltfImporter");
+        assert(gltfImporter);
+        _assets.emplace(*gltfImporter);
+
+        _gameState.emplace(_timeline, *_assets);
+        _gameState->loadLevel(*gltfImporter);
+        _gameState->setupPlayer();
 
 #ifndef CORRADE_TARGET_EMSCRIPTEN
         setSwapInterval(0);
@@ -106,13 +116,9 @@ namespace MagnumGame {
             .clearDepth(1.0f)
             .bind();
 
-
-        Vector2 controlVector = getPlayerControlVector();
-            _gameState->setControl(controlVector);
+        _gameState->setControl(getPlayerControlVector());
 
         _gameState->update();
-
-
 
         //Object picking support
         _framebuffer.mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
@@ -127,8 +133,21 @@ namespace MagnumGame {
 
         _gameState->drawTransparent();
 
+        auto transformationProjectionMatrix = _gameState->getCamera()->getTransformationProjectionMatrix();
+        if (_drawDebug) {
+            GL::Renderer::setDepthFunction(GL::Renderer::DepthFunction::LessOrEqual);
 
-        renderDebug();
+            _gameState->renderDebug(transformationProjectionMatrix);
+
+            GL::Renderer::setDepthFunction(GL::Renderer::DepthFunction::Less);
+        }
+
+        if (_debugLines) {
+            if (_tweakables && _tweakables->hasActiveDebugMode()) {
+                _debugLines->draw(transformationProjectionMatrix);
+            }
+            _debugLines->clear();
+        }
 
         GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
         GL::Renderer::enable(GL::Renderer::Feature::Blending);
@@ -146,8 +165,6 @@ namespace MagnumGame {
 
         CHECK_GL_ERROR(__FILE__, __LINE__);
     }
-
-
 
 
 }

@@ -39,6 +39,7 @@
 #include "MagnumGameCommon.h"
 #include "RigidBody.h"
 #include "CameraController.h"
+#include "DebugLines.h"
 
 namespace MagnumGame {
     class GameState;
@@ -50,9 +51,6 @@ namespace MagnumGame {
 
     class MagnumGameApp : public Platform::Application {
     public:
-
-
-        void setupDebug();
 
         explicit MagnumGameApp(const Arguments &arguments);
 
@@ -74,6 +72,7 @@ namespace MagnumGame {
         void pointerPressEvent(PointerEvent &event) override;
         void pointerReleaseEvent(PointerEvent &event) override;
         void pointerMoveEvent(PointerMoveEvent &event) override;
+        void scrollEvent(ScrollEvent &event) override;
 
 #ifdef MAGNUM_SDL2APPLICATION_MAIN
         void anyEvent(SDL_Event &event) override;
@@ -81,13 +80,6 @@ namespace MagnumGame {
 
         GL::Framebuffer _framebuffer{NoCreate};
         GL::Renderbuffer _color{NoCreate}, _objectId{NoCreate}, _depth{NoCreate};
-
-        DebugTools::ResourceManager _debugResourceManager;
-        SceneGraph::DrawableGroup3D _debugDrawables;
-
-        GL::Mesh _debugLinesMesh{NoCreate};
-        GL::Buffer _debugLinesBuffer{NoCreate};
-
 
         PluginManager::Manager<Text::AbstractFont> _fontManager;
         Containers::Pointer<Text::AbstractFont> _font;
@@ -98,27 +90,17 @@ namespace MagnumGame {
         GL::Mesh _textMesh{NoCreate};
 
         Containers::Pointer<GameAssets> _assets;
-
         Containers::Pointer<GameState> _gameState;
 
         Timeline _timeline;
 
-
         bool _pointerDrag;
-
         bool _drawDebug{false};
 
+        Containers::Pointer<DebugLines> _debugLines;
         Containers::Pointer<Tweakables> _tweakables;
 
         int controllerKeysHeld;
-
-        Containers::Pointer<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &pointer,
-                                                         Containers::StringView fileName);
-
-        void setup();
-
-
-        void renderDebug();
 
         void renderDebugText();
 
@@ -126,21 +108,11 @@ namespace MagnumGame {
 
         void renderGameStatusText();
 
-        void loadLevel(Trade::AbstractImporter &importer);
-
         void setupTextRenderer();
 
         void renderTextBuffer(const Matrix3 & matrix3, const Color3& color3, const Color3& outline_colour, GL::Mesh &mesh);
 
-        static float getTweakAmount(const KeyEvent &event, float value);
-
         UnsignedInt pickObjectIdAt(Vector2 eventPosition);
-
-        void addDebugDrawable(RigidBody &playerRigidBody);
-
-        ///For object picking, where do the players start
-        static constexpr int PlayerIdOffset = 16;
     };
-
 
 }

@@ -59,7 +59,7 @@ namespace MagnumGame {
         }
 
 
-        _tweakables->addDebugMode("Font", 0, std::vector{
+        _tweakables->addDebugMode("Font", 0, {
             Tweakables::TweakableValue{"Smoothness", &fontSmoothness},
             Tweakables::TweakableValue{"Outline start", &fontOutlineStart},
             Tweakables::TweakableValue{"Outline end", &fontOutlineEnd},
@@ -124,8 +124,6 @@ namespace MagnumGame {
     void MagnumGameApp::renderDebugText() {
         auto debugText= _tweakables->getDebugText();
         if (_debugTextRenderer && debugText.size() > 0) {
-
-            _gameState->getCamera()->draw(_debugDrawables);
 
             std::tie(_textMesh, std::ignore) =
                 Text::Renderer2D::render(*_font, _fontGlyphCache, fontSmallSize, debugText, _textVertexBuffer, _textIndexBuffer, GL::BufferUsage::DynamicDraw, Text::Alignment::BottomLeft);

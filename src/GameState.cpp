@@ -1,6 +1,7 @@
 #include "GameState.h"
 
 #include <sstream>
+#include <Corrade/Containers/GrowableArray.h>
 #include <Corrade/Utility/DebugStl.h>
 #include <Corrade/Utility/Path.h>
 #include <Corrade/Utility/String.h>
@@ -11,13 +12,16 @@
 #include <Magnum/Trade/SceneData.h>
 #include <Magnum/GL/Renderer.h>
 #include <Corrade/Containers/StructuredBindings.h>
+#include <Magnum/DebugTools/ObjectRenderer.h>
 
 #include "GameAssets.h"
 #include "OnGroundQuery.h"
 #include "Player.h"
 
 namespace MagnumGame {
-    GameState::GameState(Timeline& timeline, GameAssets& assets) : _timeline(timeline), _assets(assets) {
+    GameState::GameState(const Timeline& timeline, GameAssets& assets)
+    : _timeline(timeline)
+    , _assets(assets) {
         _bSphereQueryObject.setCollisionShape(&_bSphereQueryShape);
 
         _bWorld.setGravity({0.0f, -10.0f, 0.0f});
@@ -26,16 +30,9 @@ namespace MagnumGame {
         _debugDraw.setMode(BulletIntegration::DebugDraw::Mode::DrawWireframe);
         _bWorld.setDebugDrawer(&_debugDraw);
 
+        _cameraController.emplace(_scene);
 
-        auto& cameraObject = _scene.addChild<Object3D>(nullptr)
-            .translate(Vector3::zAxis(30.0f))
-            .rotateX(-90.0_degf);
-        auto& camera = cameraObject.addFeature<SceneGraph::Camera3D>();
-        camera.setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
-            .setProjectionMatrix(Matrix4::perspectiveProjection(30.0_degf, 1.0f, 0.1f, 100.0f))
-            .setViewport(GL::defaultFramebuffer.viewport().size());
-
-        _cameraController.emplace(cameraObject, camera);
+        _debugResourceManager.set(DebugRendererGroup, DebugTools::ObjectRendererOptions{}.setSize(1.f));
     }
 
     void GameState::setControl(Vector2 controlVector) {
@@ -56,13 +53,17 @@ namespace MagnumGame {
                 return;
             }
         }
-        _levelShapes.clear();
-        _levelMeshes.clear();
+
+        arrayRemove(_levelShapes, 0, _levelShapes.size());
+        arrayRemove(_levelMeshes, 0, _levelMeshes.size());
+        arrayReserve(_levelShapes, importer.meshCount());
+        arrayReserve(_levelMeshes, importer.meshCount());
+
         _meshToShapeMap.clear();
 
-        std::vector<UnsignedInt> meshToMeshCollider{};
+        Containers::Array<UnsignedInt> meshToMeshCollider{NoInit, importer.meshCount()};
         for (auto meshId = 0U; meshId < importer.meshCount(); meshId++) {
-            meshToMeshCollider.push_back(meshId);
+            meshToMeshCollider[meshId] = meshId;
         }
 
         Debug{} << "Meshes:" << importer.meshCount();
@@ -83,25 +84,25 @@ namespace MagnumGame {
                     debug << "is a standalone collider";
                 }
                 auto meshPositions = meshData->positions3DAsArray();
-                _levelShapes.emplace_back(InPlaceInit, meshPositions.data()->data(),
-                                          static_cast<int>(meshPositions.size()), sizeof(Vector3));
-                _levelMeshes.emplace_back(InPlaceInit, NoCreate);
+                meshToMeshCollider[meshId] = normalMeshId;
+                arrayAppend(_levelShapes, InPlaceInit, InPlaceInit, meshPositions.data()->data(), static_cast<int>(meshPositions.size()), sizeof(Vector3));
+                arrayAppend(_levelMeshes, InPlaceInit, InPlaceInit, NoCreate);
             } else {
                 auto colliderName = meshName + colliderSuffix;
                 auto colliderId = importer.meshForName(colliderName);
                 bool hasCollider = colliderId != -1;
                 if (hasCollider) {
                     meshToMeshCollider[meshId] = colliderId;
-                    _levelShapes.emplace_back(InPlaceInit);
+                    arrayAppend(_levelShapes, InPlaceInit);
                     debug << "has a collider" << colliderId << colliderName;
                 } else {
                     auto meshPositions = meshData->positions3DAsArray();
-                    _levelShapes.emplace_back(InPlaceInit, meshPositions.data()->data(),
+                    arrayAppend(_levelShapes, InPlaceInit, InPlaceInit, meshPositions.data()->data(),
                                               static_cast<int>(meshPositions.size()), sizeof(Vector3));
                     debug << "has no explicit collider, creating from mesh";
                 }
                 [[maybe_unused]]
-                auto& mesh = _levelMeshes.emplace_back(InPlaceInit, MeshTools::compile(*meshData));
+                auto& mesh = arrayAppend(_levelMeshes, InPlaceInit, InPlaceInit, MeshTools::compile(*meshData));
 #ifndef MAGNUM_TARGET_WEBGL
                 mesh->setLabel(meshName);
 #endif
@@ -196,7 +197,9 @@ namespace MagnumGame {
         animationOffset.setTransformation(Matrix4::translation({0, -0.4f, 0}));
 
         //Prevent rotation in X & Z
-        rigidBody->rigidBody().setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
+        rigidBody->rigidBody().setAngularFactor(btVector3(0.0f, 0.5f, 0.0f));
+        Debug{} << "Friction: " << rigidBody->rigidBody().getFriction() << "rolling friction" << rigidBody->rigidBody().getRollingFriction();
+        rigidBody->rigidBody().setRollingFriction(0.5f);
 
         _player.emplace("Someone", rigidBody, animator);
         _player->resetToStart(Matrix4::translation({0,2,0}));
@@ -208,6 +211,10 @@ namespace MagnumGame {
     void GameState::renderDebug(const Matrix4 &transformationProjectionMatrix) {
         _debugDraw.setTransformationProjectionMatrix(transformationProjectionMatrix);
         _bWorld.debugDrawWorld();
+
+        if (!_debugDrawables.isEmpty()) {
+            _cameraController->draw(_debugDrawables);
+        }
     }
 
     void GameState::start() {
@@ -217,14 +224,22 @@ namespace MagnumGame {
     void GameState::update() {
         if (_player) _player->update(_timeline.previousFrameDuration());
 
-
         _bWorld.stepSimulation(_timeline.previousFrameDuration(), 5);
 
         if (_cameraController) {
             _cameraController->update(_timeline.previousFrameDuration());
         }
 
+        //Doesn't actually draw, but updates the bone matrices
         _cameraController->draw(_animatorDrawables);
-
     }
+
+
+    void GameState::addDebugDrawable(SceneGraph::AbstractObject3D &playerRigidBody) {
+        //This is a feature added to playerRigidBody - it is deleted with that. Not nice to allocate in app code and delete in library code.
+        new DebugTools::ObjectRenderer3D{
+            _debugResourceManager, playerRigidBody, DebugRendererGroup, &_debugDrawables
+        };
+    }
+
 }

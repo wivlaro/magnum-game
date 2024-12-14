@@ -23,19 +23,14 @@ add_executable(MagnumGameApp MagnumGameApp.cpp
         Player.h
         TexturedDrawable.cpp
         TexturedDrawable.h
-        UnlitAlphaDrawable.cpp
-        UnlitAlphaDrawable.h
         ${MagnumGameApp_RESOURCES}
         IEnableDrawable.h
         MagnumGameApp.h
         DebugLines.cpp
         DebugLines.h
-        RandomUtil.cpp
-        RandomUtil.h
         MagnumGameApp_init.cpp
         MagnumGameApp_text.cpp
         MagnumGameApp_input.cpp
-        MagnumGameApp_debug.cpp
         Tweakables.cpp
         Tweakables.h
         GameState.cpp

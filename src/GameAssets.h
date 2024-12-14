@@ -20,8 +20,8 @@ public:
         static Containers::Array<GL::Texture2D> loadTextures(Trade::AbstractImporter &importer);
         static Containers::Array<MaterialAsset> loadMaterials(Trade::AbstractImporter &importer, Containers::Array<GL::Texture2D>& textures);
 
-        Containers::Pointer<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &importer,
-                                                         Containers::StringView fileName);
+        static Containers::Pointer<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &importer,
+                                                                    Containers::StringView fileName);
 
         btCapsuleShape& getPlayerShape() { return _bPlayerShape; }
 
@@ -36,9 +36,7 @@ public:
 
         Shaders::PhongGL _texturedShader{NoCreate};
         Shaders::PhongGL _animatedTexturedShader{NoCreate};
-        Shaders::FlatGL3D _unlitAlphaShader{NoCreate};
         Shaders::VertexColorGL3D _vertexColorShader{NoCreate};
-        Shaders::FlatGL3D _flatShader{NoCreate};
 
         btStaticPlaneShape _bGroundShape{{0,1,0},0};
         btCapsuleShape _bPlayerShape{0.125, 0.5};

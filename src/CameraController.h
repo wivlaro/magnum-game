@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Magnum/Platform/Sdl2Application.h>
+
 #include "MagnumGameCommon.h"
 #include <Magnum/SceneGraph/Camera.h>
 #include <Magnum/SceneGraph/Object.h>
@@ -8,7 +10,7 @@
 namespace MagnumGame {
     class CameraController {
     public:
-        explicit CameraController(Object3D &cameraObject, SceneGraph::Camera3D &camera);
+        explicit CameraController(Scene3D &camera);
 
         void setupTargetFromCurrent(Object3D &target);
 
@@ -27,6 +29,8 @@ namespace MagnumGame {
         Math::Matrix4<Float> getCameraObjectMatrix() const { return _cameraObject.absoluteTransformationMatrix(); }
 
         void loadCameraData(const Containers::Optional<Matrix4>& transformation, const Trade::CameraData& camera_data);
+
+        void adjustZoom(float deltaY);
 
     private:
         Object3D &_cameraObject;

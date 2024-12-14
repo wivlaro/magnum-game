@@ -46,16 +46,13 @@ namespace MagnumGame {
 
         btVector3 getPosition() const override;
 
-        void setWorldLightDirection(Quaternion direction);
-
-
         void setSkin(Skin& skin, UnsignedInt perVertexJointCount, UnsignedInt secondaryPerVertexJointCount);
 
         static inline float ambientColour = 0.2f;
-        static inline float lightColour = 0.8f;
-        static inline float shininess = 0.6f;
-        static inline float specular = 0.6f;
-        static inline Vector3 lightDirection = {0.1f, 0.9f, 0.1f};
+        static inline float lightColour = 1.0f;
+        static inline float shininess = 20.0f;
+        static inline float specular = 0.3f;
+        static inline Vector3 lightDirection = {0.4f, 0.5f, 0.3f};
 
     private:
         void draw(const Matrix4 &transformation, SceneGraph::Camera3D &) override;
@@ -73,4 +70,4 @@ namespace MagnumGame {
         UnsignedInt _secondaryPerVertexJointCount{};
     };
 
-} // NamePicker
+}

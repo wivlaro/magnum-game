@@ -23,8 +23,6 @@ namespace MagnumGame {
 
     GameAssets::GameAssets(Trade::AbstractImporter& importer) {
 
-        _unlitAlphaShader = Shaders::FlatGL3D{Shaders::FlatGL3D::Configuration{}.setFlags(Shaders::FlatGL3D::Flag::Textured)};
-
         _texturedShader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
             .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId )};
         _texturedShader.setAmbientColor(0x111111_rgbf)
@@ -40,7 +38,6 @@ namespace MagnumGame {
                 .setLightPositions({{10.0f, 15.0f, 5.0f, 0.0f}});
 
         _vertexColorShader = Shaders::VertexColorGL3D{};
-        _flatShader = Shaders::FlatGL3D{};
 
         _playerAsset = loadAnimatedModel(importer, "characters/character-female-b.glb");
     }
@@ -73,10 +70,8 @@ namespace MagnumGame {
                 }
             }
             if (outTexture) {
-                auto matOpt = gltfImporter.material(meshMat.second());
-                if (matOpt) {
-                    auto textureId = matOpt->findAttribute<UnsignedInt>(Trade::MaterialAttribute::BaseColorTexture);
-                    if (textureId) {
+                if (auto matOpt = gltfImporter.material(meshMat.second())) {
+                    if (auto textureId = matOpt->findAttribute<UnsignedInt>(Trade::MaterialAttribute::BaseColorTexture)) {
                         Debug{} << "loadModel Material" << materialName << "has base color texture" << *textureId
                                 << "with name" << gltfImporter.textureName(*textureId);
                         if (auto textureOpt = gltfImporter.texture(*textureId)) {
