@@ -1,8 +1,7 @@
 #pragma once
 
-#include <Magnum/Platform/Sdl2Application.h>
-
 #include "MagnumGameCommon.h"
+#include "MagnumGameApp.h"
 #include <Magnum/SceneGraph/Camera.h>
 #include <Magnum/SceneGraph/Object.h>
 #include <Magnum/Trade/CameraData.h>

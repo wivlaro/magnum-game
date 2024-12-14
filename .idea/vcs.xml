@@ -8,5 +8,7 @@
     <mapping directory="$PROJECT_DIR$/emscripten-dependencies-src/magnum-integration/toolchains" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/emscripten-dependencies-src/magnum-plugins" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/emscripten-dependencies-src/magnum-plugins/toolchains" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/emscripten-dependencies-src/openexr-3.2.0/build/_deps/deflate-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/emscripten-dependencies-src/openexr-3.2.0/build/_deps/imath-src" vcs="Git" />
   </component>
 </project>

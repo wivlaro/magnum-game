@@ -23,7 +23,6 @@ namespace MagnumGame {
     using namespace Magnum;
 
     class Skin;
-    struct AnimatorAsset;
 
 
     class Animator : public SceneGraph::Drawable3D {
@@ -34,7 +33,7 @@ namespace MagnumGame {
         typedef SceneGraph::Scene<SceneGraph::TranslationRotationScalingTransformation3D> BoneScene;
 
         explicit Animator(Object3D &rootObject, const AnimatorAsset &asset, Shaders::PhongGL &meshShader,
-                       SceneGraph::DrawableGroup3D *animDrawables, SceneGraph::DrawableGroup3D *meshDrawables);
+                          SceneGraph::DrawableGroup3D *animDrawables, SceneGraph::DrawableGroup3D *meshDrawables);
 
         Skin& getSkin(size_t skinIndex);
 
@@ -44,11 +43,24 @@ namespace MagnumGame {
 
         void play(const Containers::StringView& animationName, bool restart);
 
-        void setDefaultAnimation(const Containers::StringView& animationName);
-
-        void addAnimation(const Containers::String &string, AnimationPlayer &&player);
-
     private:
+
+        struct Animation {
+            AnimationPlayer player{};
+            Containers::Array<Containers::Pair<BoneObject*, Vector3>> resetPositions{};
+            Containers::Array<Containers::Pair<BoneObject*, Quaternion>> resetRotations{};
+            Containers::Array<Containers::Pair<BoneObject*, Vector3>> resetScales{};
+
+            explicit Animation(const Containers::StringView& animationName, const AnimatorAsset &asset, std::map<int, BoneObject *>& boneMap);
+
+            void addAnimationTrack(const Trade::AnimationData &animation, UnsignedInt trackIndex, const AnimatorAsset::Bone & bone, std::map<int, BoneObject*>& boneMap);
+
+            void stop();
+
+            void play();
+
+            DISALLOW_COPY(Animation);
+        };
 
         //Animation state data
         BoneScene _boneScene{};
@@ -56,12 +68,10 @@ namespace MagnumGame {
         SceneGraph::DrawableGroup3D _jointDrawables{};
         Containers::Array<Skin> _skins;
 
-        AnimationPlayer* _currentAnimation{};
+        Animation* _currentAnimation{};
         Containers::String _defaultAnimationName;
 
-        std::unordered_map<Containers::String, AnimationPlayer> _animationPlayers{};
-
-        static void addAnimationTrack(AnimationPlayer &player, const Trade::AnimationData &animation, UnsignedInt trackIndex, std::map<int, BoneObject *> boneMap);
+        std::unordered_map<Containers::String, Animation> _animationPlayers{};
     };
 
     class Skin {

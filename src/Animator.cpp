@@ -7,6 +7,7 @@
 #include <ostream>
 #include <unordered_set>
 #include <set>
+#include <Corrade/Containers/GrowableArray.h>
 #include <Magnum/Trade/AbstractImporter.h>
 #include <Magnum/Trade/AnimationData.h>
 #include <Corrade/Containers/StructuredBindings.h>
@@ -19,7 +20,6 @@
 #include "TexturedDrawable.h"
 
 namespace MagnumGame {
-
 
     Animator::Animator(Object3D &rootObject, const AnimatorAsset &asset, Shaders::PhongGL &meshShader,
                        SceneGraph::DrawableGroup3D *animDrawables, SceneGraph::DrawableGroup3D *meshDrawables)
@@ -35,7 +35,9 @@ namespace MagnumGame {
             [&](BoneObject &parentBone, const AnimatorAsset::Bone &boneAsset, int depth) {
 
             boneMap[boneAsset.boneId] = &parentBone;
-            parentBone.setTransformation(boneAsset.transform);
+            parentBone.setTranslation(boneAsset.defaultTranslation);
+            parentBone.setRotation(boneAsset.defaultRotation);
+            parentBone.setScaling(boneAsset.defaultScale);
             Debug{} << std::string(depth, '\t') << "Bone" << boneAsset.name;
 
             for (auto &childBoneAsset: boneAsset.children) {
@@ -64,8 +66,7 @@ namespace MagnumGame {
             parent.setTransformation(parentAsset.transform);
 
             if (parentAsset.skinMesh.mesh != nullptr && parentAsset.skinMesh.material != nullptr) {
-                auto& drawable =
-                parent.addFeature<TexturedDrawable>(parentAsset.skinMesh.material->texture, meshShader, *parentAsset.skinMesh.mesh, *meshDrawables);
+                auto& drawable = parent.addFeature<TexturedDrawable>(parentAsset.skinMesh.material->texture, meshShader, *parentAsset.skinMesh.mesh, *meshDrawables);
 
                 if (parentAsset.skinMesh.skin != nullptr) {
                     auto skinBone = skinMap.find(parentAsset.skinMesh.skin);
@@ -89,35 +90,53 @@ namespace MagnumGame {
         processMeshes(rootObject, asset._rootSkinMeshNode);
 
         for (auto& [animationName, animationData] : asset._animations) {
-
-            auto &player = _animationPlayers[animationName];
-
-            Debug{} << "Instancing anim" << animationName;
-            for (UnsignedInt trackIndex = 0; trackIndex != animationData.trackCount(); ++trackIndex) {
-
-                auto animatedObjectId = animationData.trackTarget(trackIndex);
-                auto targetBone = asset._bonesById.find(animatedObjectId);
-
-                if (targetBone != asset._bonesById.end()) {
-                    Debug{} << "Track" << animationName << "track" << trackIndex
-                    << "target" << animationData.trackTarget(trackIndex)
-                    << targetBone->second.name
-                    << "type" << animationData.trackType(trackIndex)
-                    << "(name" << animationData.trackTargetName(trackIndex) << ")"
-                    << "result" << animationData.trackResultType(trackIndex);
-                }
-                addAnimationTrack(player, animationData, trackIndex, boneMap);
-            }
-
-            player.setDuration(animationData.duration());
-            player.setPlayCount(0);
+            _animationPlayers.emplace(std::piecewise_construct,
+                std::forward_as_tuple(animationName),
+                std::forward_as_tuple(animationName, asset, boneMap));
         }
     }
 
 
-    void Animator::addAnimationTrack(
-        AnimationPlayer &player, const Trade::AnimationData &animation, UnsignedInt trackIndex,
-        std::map<int, BoneObject *> boneMap) {
+    Animator::Animation::Animation(const Containers::StringView& animationName, const AnimatorAsset &asset, std::map<int, BoneObject *>& boneMap) {
+        auto& animationData = asset._animations.at(animationName);
+
+        Debug{} << "Instancing anim" << animationName;
+        for (UnsignedInt trackIndex = 0; trackIndex != animationData.trackCount(); ++trackIndex) {
+
+            auto animatedObjectId = animationData.trackTarget(trackIndex);
+            auto targetBone = asset._bonesById.find(animatedObjectId);
+
+            if (targetBone != asset._bonesById.end()) {
+                Debug{} << "Track" << animationName << "track" << trackIndex
+                        << "target" << animationData.trackTarget(trackIndex)
+                        << targetBone->second.name
+                        << "type" << animationData.trackType(trackIndex)
+                        << "(name" << animationData.trackTargetName(trackIndex) << ")"
+                        << "result" << animationData.trackResultType(trackIndex);
+                addAnimationTrack(animationData, trackIndex, targetBone->second, boneMap);
+            }
+            else {
+                Warning warning{};
+                warning << "Animation" << animationName << "Failed to find target bone" << animatedObjectId
+                                  << "Track" << animationName << "track" << trackIndex
+                                  << "target" << animationData.trackTarget(trackIndex)
+                                  << "type" << animationData.trackType(trackIndex)
+                                  << "(name" << animationData.trackTargetName(trackIndex) << ")"
+                                  << "result" << animationData.trackResultType(trackIndex);
+
+                warning << Warning::newline << "But we have:";
+                for (auto& [boneId, bone] : asset._bonesById) {
+                    warning << Warning::newline << "Bone " << boneId << "->" << bone.boneId << bone.name;
+                }
+            }
+        }
+
+        player.setDuration(animationData.duration());
+        player.setPlayCount(0);
+    }
+
+    void Animator::Animation::addAnimationTrack(const Trade::AnimationData &animation, UnsignedInt trackIndex, const AnimatorAsset::Bone& bone, std::map<int, BoneObject*>& boneMap) {
+
         auto animatedObjectId = animation.trackTarget(trackIndex);
         auto targetObject = boneMap.find(animatedObjectId);
 
@@ -142,6 +161,7 @@ namespace MagnumGame {
                     player.addWithCallback(animation.track<Vector3>(trackIndex),
                                            callback, animatedObject);
                 }
+                arrayAppend(resetPositions, InPlaceInit, &animatedObject, bone.defaultTranslation);
             }
             break;
             case Trade::AnimationTrackTarget::Rotation3D: {
@@ -157,6 +177,7 @@ namespace MagnumGame {
                     player.addWithCallback(animation.track<Quaternion>(trackIndex),
                                            callback, animatedObject);
                 }
+                arrayAppend(resetRotations, InPlaceInit, &animatedObject, bone.defaultRotation);
             }
             break;
             case Trade::AnimationTrackTarget::Scaling3D: {
@@ -172,11 +193,29 @@ namespace MagnumGame {
                     player.addWithCallback(animation.track<Vector3>(trackIndex),
                                            callback, animatedObject);
                 }
+                arrayAppend(resetScales, InPlaceInit, &animatedObject, bone.defaultScale);
             }
             break;
             default: CORRADE_INTERNAL_ASSERT_UNREACHABLE();
                 break;
         }
+    }
+
+    void Animator::Animation::stop() {
+        player.stop();
+        for (auto& [bone, position] : resetPositions) {
+            bone->setTranslation(position);
+        }
+        for (auto& [bone, rotation] : resetRotations) {
+            bone->setRotation(rotation);
+        }
+        for (auto& [bone,scale] : resetScales) {
+            bone->setScaling(scale);
+        }
+    }
+
+    void Animator::Animation::play() {
+        player.play(std::chrono::system_clock::now().time_since_epoch());
     }
 
     Skin &Animator::getSkin(size_t skinIndex) {
@@ -189,7 +228,7 @@ namespace MagnumGame {
 
     void Animator::draw(const Matrix4 &, SceneGraph::Camera3D &) {
         if (_currentAnimation) {
-            _currentAnimation->advance(std::chrono::system_clock::now().time_since_epoch());
+            _currentAnimation->player.advance(std::chrono::system_clock::now().time_since_epoch());
         }
         _fakeBoneCamera.draw(_jointDrawables);
     }
@@ -208,13 +247,9 @@ namespace MagnumGame {
         if (_currentAnimation) {
             _currentAnimation->stop();
         }
-        _currentAnimation = &_animationPlayers[animationName];
+        _currentAnimation = &_animationPlayers.at(animationName);
         _currentAnimation = &animIt->second;
         assert(_currentAnimation == &animIt->second);
-        _currentAnimation->play(std::chrono::system_clock::now().time_since_epoch());
-    }
-
-    void Animator::addAnimation(const Containers::String &name, AnimationPlayer &&player) {
-        _animationPlayers[name] = std::move(player);
+        _currentAnimation->play();
     }
 } // MagnumGame

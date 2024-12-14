@@ -1,10 +1,10 @@
 # Magnum Game
 
-Template game project for mosra/magnum
+Template game project for [mosra/magnum](/mosra/magnum)
 
 ## Building for web on MacOS
 
-To set up the build environemnt, run once on the machine:
+To set up the build environment, run once on the machine:
 
     build-emscripten-depenencies.sh
 
@@ -23,18 +23,40 @@ Then open a browser to [http://localhost:8000/magnum-game](http://localhost:8000
 
 Make sure you've run the:
 
-    build-emscripten-depenencies.sh
+    build-emscripten-dependencies.sh
 
 Open the project in CLion, and copy the cmake options from [build-release.sh](build-release.sh) into the CMake options in the CLion settings (except CMAKE_BUILD_TYPE).
 
 
+## How To...
+
+### Editing the level
+
+Using Blender, there is the [models/levels-src/]level-*.blend files.
+
+#### Tips:
+
+ * Name objects -collider to use their mesh as a convex hull collider
+ * Use 'Duplicate Linked' action to avoid duplicating meshes
+ * Use an inactive collection if you want a palette of pieces 
+
+#### Export
+
+Use glTF 2.0 exporter with .glb format for most optimal performance.
+
+ * Include Cameras to include a default camera position
+ * Disable the Palette collection and only export Active Collection
+
+
 ## TO DO
 
-* Model lighting correct when model skinned/rotated
 * Shadow caster/receiver drawables
 * Menu / game system
 * Try faster Freetype lib where available
-* Refactor - loaded animated model assets separate from animator
-* Refactor - Game state - move all scenegraph code in there
 * Platform support - Emscripten 
 * Platform support - Mobile? 
+
+## Credits
+
+* https://www.kenney.nl/assets/platformer-kit
+* https://www.kenney.nl/assets/mini-characters-1

@@ -35,7 +35,7 @@ namespace MagnumGame {
         auto sceneData = importer.scene(sceneId);
 
         std::set<int> meshTree{};
-        std::map<int, Bone &> boneMap;
+        std::map<int, Bone &>& boneMap = _bonesById;
         std::function<bool(int, Bone &, int)> processBones = [&](int parentId, Bone &parentBone, int depth) {
             assert(boneMap.find(parentId) == boneMap.end());
             boneMap.insert({parentId, parentBone});
@@ -57,9 +57,9 @@ namespace MagnumGame {
                 auto& childBone = *new (&parentBone.children[childIndex]) Bone(importer.objectName(childId));
 
                 if (auto transform = sceneData->transformation3DFor(childId)) {
-                    childBone.transform = *transform;
-                } else {
-                    childBone.transform = Matrix4{Math::IdentityInit};
+                    childBone.defaultTranslation = transform->translation();
+                    childBone.defaultRotation = Quaternion::fromMatrix(transform->rotation());
+                    childBone.defaultScale = transform->scaling();
                 }
 
                 if (processBones(childId, childBone, depth + 1)) {

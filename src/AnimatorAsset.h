@@ -4,6 +4,7 @@
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/Optional.h>
 #include <Magnum/GL/Texture.h>
+#include <Magnum/Math/Quaternion.h>
 #include <Magnum/Trade/AbstractImporter.h>
 #include "MagnumGameCommon.h"
 
@@ -21,8 +22,10 @@ namespace MagnumGame {
         struct Bone {
             int boneId;
             Containers::String name;
-            Matrix4 transform;
-            Containers::Array<Bone> children;
+            Vector3 defaultTranslation{};
+            Quaternion defaultRotation{Math::IdentityInit};
+            Vector3 defaultScale{1,1,1};
+            Containers::Array<Bone> children{};
 
             explicit Bone(const Containers::String &name)
                 : name(name) {
@@ -35,8 +38,7 @@ namespace MagnumGame {
             Containers::Array<Matrix4> _inverseBindMatrices{};
 
             explicit SkinAsset(const Containers::ArrayView<const UnsignedInt> &joints,
-                const Containers::ArrayView<const Matrix4>& inverseBindMatrices
-                                        );
+                const Containers::ArrayView<const Matrix4>& inverseBindMatrices);
             DISALLOW_COPY(SkinAsset)
         };
 
