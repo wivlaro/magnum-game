@@ -54,7 +54,6 @@ namespace MagnumGame {
             }
         }
 
-
         _tweakables->addDebugMode("Font", 0, {
             Tweakables::TweakableValue{"Smoothness", &fontSmoothness},
             Tweakables::TweakableValue{"Outline start", &fontOutlineStart},
@@ -127,7 +126,7 @@ namespace MagnumGame {
 
     void MagnumGameApp::renderDebugText() {
         auto debugText= _tweakables->getDebugText();
-        if (_debugTextRenderer && debugText.size() > 0) {
+        if (_debugTextRenderer && !debugText.empty()) {
 
             std::tie(_textMesh, std::ignore) =
                 Text::Renderer2D::render(*_font, _fontGlyphCache, fontSmallSize, debugText, _textVertexBuffer, _textIndexBuffer, GL::BufferUsage::DynamicDraw, Text::Alignment::BottomLeft);
@@ -136,11 +135,11 @@ namespace MagnumGame {
         }
     }
 
-    void MagnumGameApp::renderTextBuffer(const Matrix3 &textMatrix, const Color3 &color, const Color3 &outline_colour, GL::Mesh &mesh) {
+    void MagnumGameApp::renderTextBuffer(const Matrix3 &textMatrix, const Color3 &color, const Color3 &outlineColour, GL::Mesh &mesh) {
         _textShader
                 .setTransformationProjectionMatrix( Matrix3::projection(Vector2{windowSize()}) * textMatrix)
                 .setColor(color)
-                .setOutlineColor(outline_colour)
+                .setOutlineColor(outlineColour)
                 .setOutlineRange(fontOutlineStart, fontOutlineEnd)
                 .setSmoothness(fontSmoothness)
                 .bindVectorTexture(_fontGlyphCache.texture())

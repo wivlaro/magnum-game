@@ -31,11 +31,11 @@ namespace MagnumGame {
     }
 
     void Tweakables::DebugMode::printTweakables(std::ostringstream &os) const {
-        Corrade::Utility::Debug debug{&os};
+        Debug debug{&os};
         debug << modeName;
         for (size_t tweakableIndex = 0; tweakableIndex < tweakableValues.size(); tweakableIndex++) {
             auto &tweakableValue = tweakableValues[tweakableIndex];
-            debug << Corrade::Utility::Debug::newline << tweakableValue.name << tweakableValue.get();
+            debug << Debug::newline << tweakableValue.name << tweakableValue.get();
             debug << (tweakableIndex == getCurrentTweakableIndex() ? "<-CURRENT" : "");
         }
     }
@@ -43,7 +43,7 @@ namespace MagnumGame {
 
     void Tweakables::addDebugMode(const char *modeName, size_t initialIndex,
                                   std::initializer_list<TweakableValue> tweakableValues) {
-        arrayAppend(_debugModes, InPlaceInit, modeName, initialIndex, std::move(tweakableValues));
+        arrayAppend(_debugModes, InPlaceInit, modeName, initialIndex, tweakableValues);
     }
 
     std::string Tweakables::getDebugText() const {
@@ -60,6 +60,7 @@ namespace MagnumGame {
     }
 
     void Tweakables::changeDebugModeIndex(int delta) {
-        _currentDebugModeIndex = (_currentDebugModeIndex + delta + _debugModes.size()) % _debugModes.size();
+        auto numDebugModes = _debugModes.size();
+        _currentDebugModeIndex = (_currentDebugModeIndex + delta + numDebugModes) % numDebugModes;
     }
 }

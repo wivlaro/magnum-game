@@ -110,7 +110,7 @@ namespace MagnumGame {
 
         void setupTextRenderer();
 
-        void renderTextBuffer(const Matrix3 & matrix3, const Color3& color3, const Color3& outline_colour, GL::Mesh &mesh);
+        void renderTextBuffer(const Matrix3 & matrix3, const Color3& color3, const Color3& outlineColour, GL::Mesh &mesh);
 
         UnsignedInt pickObjectIdAt(Vector2 eventPosition);
     };

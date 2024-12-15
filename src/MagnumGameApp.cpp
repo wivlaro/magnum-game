@@ -49,6 +49,8 @@ namespace MagnumGame {
 
     MagnumGameApp::MagnumGameApp(const Arguments &arguments)
     : Platform::Application(arguments, NoCreate)
+    , _pointerDrag{}
+    , controllerKeysHeld{}
     {
         /* Try 8x MSAA, fall back to zero samples if not possible. Enable only 2x
            MSAA if we have enough DPI. */
