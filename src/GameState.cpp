@@ -5,17 +5,16 @@
 #include <Corrade/Utility/DebugStl.h>
 #include <Corrade/Utility/Path.h>
 #include <Corrade/Utility/String.h>
+#include <Corrade/Containers/StructuredBindings.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/MeshTools/Compile.h>
 #include <Magnum/Trade/LightData.h>
 #include <Magnum/Trade/MeshData.h>
 #include <Magnum/Trade/SceneData.h>
 #include <Magnum/GL/Renderer.h>
-#include <Corrade/Containers/StructuredBindings.h>
 #include <Magnum/DebugTools/ObjectRenderer.h>
 
 #include "GameAssets.h"
-#include "OnGroundQuery.h"
 #include "Player.h"
 
 namespace MagnumGame {
@@ -139,12 +138,12 @@ namespace MagnumGame {
 
                     Debug debug{};
                     debug << "\tLight" << objectId << light
-                    << lightData->type()
-                                  << "atten" << lightData->attenuation()
-                    << "color" << lightData->color()
-                    << "intensity" << lightData->intensity()
-                    << "range" <<lightData->range()
-                    << "cone angles" << lightData->innerConeAngle() << lightData->outerConeAngle();
+                            << lightData->type()
+                            << "atten" << lightData->attenuation()
+                            << "color" << lightData->color()
+                            << "intensity" << lightData->intensity()
+                            << "range" << lightData->range()
+                            << "cone angles" << lightData->innerConeAngle() << lightData->outerConeAngle();
 
                     if (auto matrix = sceneData->transformation3DFor(objectId)) {
                         debug << "\tTransformation" << matrix->translation();

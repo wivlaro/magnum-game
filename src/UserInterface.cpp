@@ -2,7 +2,6 @@
 
 #include <Corrade/Containers/GrowableArray.h>
 #include <Magnum/Math/Matrix3.h>
-#include <Magnum/Math/Color.h>
 
 namespace MagnumGame {
     using namespace Magnum::Math::Literals;

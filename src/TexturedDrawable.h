@@ -5,7 +5,6 @@
 #pragma once
 
 #include <Corrade/Containers/Optional.h>
-#include <Magnum/SceneGraph/Drawable.h>
 #include <Magnum/Math/Color.h>
 #include <Magnum/Trade/Trade.h>
 #include <Magnum/GL/GL.h>
@@ -14,7 +13,6 @@
 
 #include "Animator.h"
 #include "IEnableDrawable.h"
-#include "MagnumGameCommon.h"
 
 
 namespace MagnumGame {

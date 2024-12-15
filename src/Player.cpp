@@ -5,7 +5,6 @@
 #include <vector>
 #include "Player.h"
 
-#include "DebugLines.h"
 #include "OnGroundQuery.h"
 #include "TexturedDrawable.h"
 #include "RigidBody.h"

@@ -10,18 +10,15 @@
 #include <Magnum/Timeline.h>
 #include <Magnum/BulletIntegration/DebugDraw.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
-#include <Magnum/GL/Mesh.h>
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/Math/Color.h>
 #include <Magnum/Math/Time.h>
 #include <Magnum/MeshTools/Compile.h>
 #include <Magnum/MeshTools/Transform.h>
 #include <Magnum/SceneGraph/Camera.h>
-#include <Magnum/SceneGraph/Scene.h>
 #include <Magnum/Shaders/PhongGL.h>
 #include <Magnum/Trade/AbstractImporter.h>
 #include <Magnum/Trade/TextureData.h>
-#include <Magnum/Trade/MaterialData.h>
 #include <Magnum/Text/AbstractFont.h>
 #include <Magnum/TextureTools/Atlas.h>
 #include <Magnum/ImageView.h>
@@ -37,7 +34,6 @@
 
 #include "DebugLines.h"
 #include "GameState.h"
-#include "GameAssets.h"
 #include "UserInterface.h"
 
 #ifdef BT_USE_DOUBLE_PRECISION

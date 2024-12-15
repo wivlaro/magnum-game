@@ -7,40 +7,36 @@
 #include <ranges>
 #include <assert.h>
 #include <Corrade/Containers/Array.h>
-#include <Corrade/Containers/GrowableArray.h>
+#include <Corrade/Containers/StructuredBindings.h>
 #include <Magnum/Trade/SceneData.h>
 #include <Magnum/Trade/SkinData.h>
 #include <Magnum/Trade/MeshData.h>
 #include <Magnum/MeshTools/Compile.h>
-#include <Corrade/Containers/StructuredBindings.h>
 
 #include "GameAssets.h"
 
 namespace MagnumGame {
- AnimatorAsset::SkinAsset::SkinAsset(const Containers::ArrayView<const UnsignedInt> &joints,
-                                    const Containers::ArrayView<const Matrix4>& inverseBindMatrices)
+    AnimatorAsset::SkinAsset::SkinAsset(const Containers::ArrayView<const UnsignedInt> &joints,
+                                        const Containers::ArrayView<const Matrix4> &inverseBindMatrices)
         : _jointBoneIds(InPlaceInit, joints),
-          _inverseBindMatrices(InPlaceInit,inverseBindMatrices)
-    {
+          _inverseBindMatrices(InPlaceInit, inverseBindMatrices) {
     }
 
     AnimatorAsset::AnimatorAsset(Trade::AbstractImporter &importer)
         : _meshes(DefaultInit, importer.meshCount())
-    , _textures(GameAssets::loadTextures(importer))
-    , _materials(GameAssets::loadMaterials(importer, _textures))
-    , _skins{NoInit, importer.skin3DCount()}
-    {
+          , _textures(GameAssets::loadTextures(importer))
+          , _materials(GameAssets::loadMaterials(importer, _textures))
+          , _skins{NoInit, importer.skin3DCount()} {
         auto sceneId = importer.defaultScene();
         Debug{} << "Scene" << sceneId << ":" << importer.sceneName(sceneId);
         auto sceneData = importer.scene(sceneId);
 
         std::set<int> meshTree{};
-        std::map<int, Bone &>& boneMap = _bonesById;
         std::function<bool(int, Bone &, int)> processBones = [&](int parentId, Bone &parentBone, int depth) {
-            assert(boneMap.find(parentId) == boneMap.end());
-            boneMap.insert({parentId, parentBone});
-            assert(boneMap.find(parentId) != boneMap.end());
-            assert(&boneMap.find(parentId)->second == &parentBone);
+            assert(_bonesById.find(parentId) == _bonesById.end());
+            _bonesById.insert({parentId, parentBone});
+            assert(_bonesById.find(parentId) != _bonesById.end());
+            assert(&_bonesById.find(parentId)->second == &parentBone);
 
             parentBone.boneId = parentId;
 
@@ -54,7 +50,7 @@ namespace MagnumGame {
             parentBone.children = Containers::Array<Bone>{NoInit, childIds.size()};
             for (size_t childIndex = 0; childIndex < childIds.size(); ++childIndex) {
                 auto childId = childIds[childIndex];
-                auto& childBone = *new (&parentBone.children[childIndex]) Bone(importer.objectName(childId));
+                auto &childBone = *new(&parentBone.children[childIndex]) Bone(importer.objectName(childId));
 
                 if (auto transform = sceneData->transformation3DFor(childId)) {
                     childBone.defaultTranslation = transform->translation();
@@ -84,7 +80,7 @@ namespace MagnumGame {
 
             auto jointIds = skinData->joints();
             assert(jointIds.size() == inverseBindMatrices.size());
-            new (&_skins[skinId]) SkinAsset{jointIds, inverseBindMatrices};
+            new(&_skins[skinId]) SkinAsset{jointIds, inverseBindMatrices};
         }
 
         Debug{} << "Meshes:" << importer.meshCount();
@@ -102,16 +98,13 @@ namespace MagnumGame {
             perVertexJointCounts[meshId] = MeshTools::compiledPerVertexJointCount(*meshData);
         }
 
-        std::function<void(int, SkinMeshNode&, int)> processMeshes = [&](int parentId, SkinMeshNode& parentAsset, int depth) {
-
+        std::function<void(int, SkinMeshNode &, int)> processMeshes = [&](int parentId, SkinMeshNode &parentAsset, int depth) {
             if (meshTree.find(parentId) == meshTree.end()) {
-                Debug{} << std::string(depth, '\t') << "Skipping" << parentId << (parentId == -1
-                            ? "ROOT"
-                            : importer.objectName(parentId))
+                Debug{} << std::string(depth, '\t') << "Skipping"
+                        << parentId << (parentId == -1 ? "ROOT" : importer.objectName(parentId))
                         << "No Mesh";
                 return;
             }
-
 
             auto childIds = sceneData->childrenFor(parentId);
             parentAsset.children = Containers::Array<SkinMeshNode>{NoInit, childIds.size()};
@@ -120,7 +113,7 @@ namespace MagnumGame {
                 auto childName = importer.objectName(childId);
                 Debug{} << std::string(depth, '\t') << "Object" << childId << childName;
 
-                auto &child = *new (&parentAsset.children[childIndex]) SkinMeshNode(childName);;
+                auto &child = *new(&parentAsset.children[childIndex]) SkinMeshNode(childName);;
                 if (auto transform = sceneData->transformation3DFor(childId)) {
                     child.transform = *transform;
                 }
@@ -132,10 +125,8 @@ namespace MagnumGame {
                     break;
                 }
                 for (auto [meshId,matId]: sceneData->meshesMaterialsFor(childId)) {
-
                     Debug{} << std::string(depth, '\t') << "  " << "Mesh" << meshId << importer.meshName(meshId) <<
-                            "Material" << matId <<
-                            (matId != -1 ? importer.materialName(matId) : "NO MATERIAL");
+                            "Material" << matId << (matId != -1 ? importer.materialName(matId) : "NO MATERIAL");
 
                     auto meshPerVertexJointCounts = perVertexJointCounts[meshId];
                     child.skinMesh = {
@@ -162,5 +153,4 @@ namespace MagnumGame {
             }
         }
     }
-
 } // MagnumGame

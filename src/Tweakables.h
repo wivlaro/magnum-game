@@ -1,8 +1,6 @@
 #pragma once
 #include <functional>
-#include <utility>
 #include <Corrade/Containers/Array.h>
-#include <Corrade/Containers/Pointer.h>
 
 #include "MagnumGameApp.h"
 #include "UserInterface.h"

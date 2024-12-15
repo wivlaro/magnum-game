@@ -2,7 +2,6 @@
 
 #include <sstream>
 #include <Corrade/Containers/GrowableArray.h>
-#include <Corrade/Utility/DebugStl.h>
 
 #include "MagnumGameApp.h"
 #include "Player.h"

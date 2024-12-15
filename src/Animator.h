@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Magnum/Animation/Animation.h>
 #include <Magnum/Animation/Player.h>
 #include <Magnum/SceneGraph/AbstractFeature.h>
 #include <Magnum/SceneGraph/AbstractObject.h>

@@ -4,7 +4,6 @@
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/GrowableArray.h>
 #include <Corrade/Containers/Pointer.h>
-#include <Corrade/Containers/Reference.h>
 #include <Corrade/PluginManager/Manager.h>
 #include <Magnum/Math/Matrix3.h>
 #include <Magnum/Shaders/DistanceFieldVectorGL.h>

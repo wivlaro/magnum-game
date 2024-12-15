@@ -17,8 +17,8 @@
 namespace MagnumGame {
     TexturedDrawable::TexturedDrawable(SceneGraph::AbstractObject3D &object,
                                        const Trade::ImageData2D &image,
-                                       Magnum::Shaders::PhongGL &shader,
-                                       Magnum::GL::Mesh &mesh,
+                                       Shaders::PhongGL &shader,
+                                       GL::Mesh &mesh,
                                        SceneGraph::DrawableGroup3D &drawables,
                                        UnsignedInt objectId)
         : SceneGraph::Drawable3D(object, &drawables),
@@ -32,8 +32,8 @@ namespace MagnumGame {
 
     TexturedDrawable::TexturedDrawable(SceneGraph::AbstractObject3D &object,
                                        GL::Texture2D *texture,
-                                       Magnum::Shaders::PhongGL &shader,
-                                       Magnum::GL::Mesh &mesh,
+                                       Shaders::PhongGL &shader,
+                                       GL::Mesh &mesh,
                                        SceneGraph::DrawableGroup3D &drawables,
                                        UnsignedInt objectId)
         : SceneGraph::Drawable3D{object, &drawables},
@@ -58,7 +58,7 @@ namespace MagnumGame {
         return t;
     }
 
-    void TexturedDrawable::draw(const Magnum::Matrix4 &transformation, SceneGraph::Camera3D &camera) {
+    void TexturedDrawable::draw(const Matrix4 &transformation, SceneGraph::Camera3D &camera) {
         if (_color.a() <= 0.0f) return;
         CHECK_GL_ERROR(__FILE__, __LINE__);
         _shader.setProjectionMatrix(camera.projectionMatrix());

@@ -7,12 +7,12 @@
 #include <Magnum/Trade/MaterialData.h>
 #include <Magnum/Trade/TextureData.h>
 #include <Magnum/Trade/ImageData.h>
+#include <Magnum/ImageView.h>
 #include <Magnum/GL/Texture.h>
 #include <Magnum/GL/TextureFormat.h>
 #include <Magnum/Math/Matrix4.h>
 #include <Magnum/Math/Vector3.h>
 #include <Magnum/Math/Color.h>
-#include <Magnum/ImageView.h>
 #include <Corrade/Utility/Path.h>
 
 #include "MagnumGameApp.h"

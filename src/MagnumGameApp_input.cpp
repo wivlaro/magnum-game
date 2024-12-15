@@ -9,7 +9,6 @@
 #endif
 
 #include "GameState.h"
-#include "OnGroundQuery.h"
 #include "Player.h"
 #include "Tweakables.h"
 #include "UserInterface.h"

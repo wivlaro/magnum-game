@@ -8,7 +8,6 @@
 #include <unordered_set>
 #include <set>
 #include <Corrade/Containers/GrowableArray.h>
-#include <Magnum/Trade/AbstractImporter.h>
 #include <Magnum/Trade/AnimationData.h>
 #include <Corrade/Containers/StructuredBindings.h>
 #include <Magnum/Math/CubicHermite.h>
@@ -27,8 +26,6 @@ namespace MagnumGame {
     , _fakeBoneCamera{_boneScene}
     , _skins{NoInit, asset._skins.size()}
     {
-
-
         std::map<int, BoneObject *> boneMap;
 
         std::function<void(BoneObject &, const AnimatorAsset::Bone &, int)> instantiateBone =
@@ -107,12 +104,6 @@ namespace MagnumGame {
             auto targetBone = asset._bonesById.find(animatedObjectId);
 
             if (targetBone != asset._bonesById.end()) {
-                // Debug{} << "Track" << animationName << "track" << trackIndex
-                //         << "target" << animationData.trackTarget(trackIndex)
-                //         << targetBone->second.name
-                //         << "type" << animationData.trackType(trackIndex)
-                //         << "(name" << animationData.trackTargetName(trackIndex) << ")"
-                //         << "result" << animationData.trackResultType(trackIndex);
                 addAnimationTrack(animationData, trackIndex, targetBone->second, boneMap);
             }
             else {
