@@ -6,6 +6,7 @@
 
 #include "MagnumGameApp.h"
 #include "Player.h"
+#include "../../../deps/include/Corrade/Containers/EnumSet.h"
 
 namespace MagnumGame {
     Tweakables::Tweakables()
@@ -62,5 +63,51 @@ namespace MagnumGame {
     void Tweakables::changeDebugModeIndex(int delta) {
         auto numDebugModes = _debugModes.size();
         _currentDebugModeIndex = (_currentDebugModeIndex + delta + numDebugModes) % numDebugModes;
+    }
+
+    static int getModifiersPower10Adjustment(MagnumGameApp::Modifiers modifiers) {
+        auto powerAdjust = -1;
+        if (modifiers & MagnumGameApp::Modifier::Shift) {
+            powerAdjust -= 1;
+        } else if (modifiers & (MagnumGameApp::Modifier::Ctrl | MagnumGameApp::Modifier::Alt)) {
+            powerAdjust += 1;
+        }
+        return powerAdjust;
+    }
+
+    bool TweakableUIText::handleKeyPress(MagnumGameApp::Key key,
+                                         MagnumGameApp::Modifiers modifiers) {
+        using Key = MagnumGameApp::Key;
+
+        switch (key) {
+            case Key::PageDown:
+                _tweakables.changeDebugModeIndex(1);
+                return true;
+            case Key::PageUp:
+                _tweakables.changeDebugModeIndex(-1);
+                return true;
+            default: break;
+        }
+
+        auto &debugMode = _tweakables.currentDebugMode();
+        if (debugMode.getModeName() && debugMode.hasTweakableValues()) {
+            switch (key) {
+                case Key::Left:
+                    debugMode.currentTweaker().tweakBy(-1, getModifiersPower10Adjustment(modifiers));
+                    return true;
+                case Key::Right:
+                    debugMode.currentTweaker().tweakBy(1, getModifiersPower10Adjustment(modifiers));
+                    return true;
+                case Key::Up:
+                    debugMode.changeCurrentTweaker(-1);
+                    return true;
+                case Key::Down:
+                    debugMode.changeCurrentTweaker(1);
+                    return true;
+            default: break;
+            }
+        }
+
+        return false;
     }
 }

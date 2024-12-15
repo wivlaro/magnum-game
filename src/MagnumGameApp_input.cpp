@@ -1,4 +1,3 @@
-
 #include "MagnumGameApp.h"
 #include <Corrade/Containers/StridedArrayView.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
@@ -13,92 +12,95 @@
 #include "OnGroundQuery.h"
 #include "Player.h"
 #include "Tweakables.h"
+#include "UserInterface.h"
 
 namespace MagnumGame {
-    static int getModifiersPower10Adjustment(const MagnumGameApp::KeyEvent &event) {
-        auto powerAdjust = -1;
-        if (event.modifiers() & MagnumGameApp::Modifier::Shift) {
-            powerAdjust -= 1;
+    MagnumGameApp::ControllerKeys MagnumGameApp::getKeyBit(Key key) {
+        ControllerKeys keyBit;
+        switch (key) {
+            case Key::W:
+                keyBit = KEY_FORWARD;
+                break;
+            case Key::S:
+                keyBit = KEY_BACKWARD;
+                break;
+            case Key::A:
+                keyBit = KEY_LEFT;
+                break;
+            case Key::D:
+                keyBit = KEY_RIGHT;
+                break;
+            default:
+                keyBit = KEY_NONE;
+                break;
         }
-        else if (event.modifiers() & (MagnumGameApp::Modifier::Ctrl|MagnumGameApp::Modifier::Alt)) {
-            powerAdjust += 1;
-        }
-        return powerAdjust;
+        return keyBit;
     }
 
     void MagnumGameApp::keyPressEvent(KeyEvent &event) {
-        if (event.key() == Key::PageDown) {
-            _tweakables->changeDebugModeIndex(1);
-            event.setAccepted();
-        } else if (event.key() == Key::PageUp) {
-            _tweakables->changeDebugModeIndex(-1);
-            event.setAccepted();
-        // } else if (event.key() == Key::X) {
-        //     _gameState->_allowDeath = !_gameState->_allowDeath;
-        //     event.setAccepted();
-        } else if (event.key() == Key::X) {
-            _drawDebug = !_drawDebug;
-            event.setAccepted();
-        } else if (event.key() == Key::W) {
-            controllerKeysHeld |= KEY_FORWARD;
-            event.setAccepted();
-        } else if (event.key() == Key::S) {
-            controllerKeysHeld |= KEY_BACKWARD;
-            event.setAccepted();
-        } else if (event.key() == Key::A) {
-            controllerKeysHeld |= KEY_LEFT;
-            event.setAccepted();
-        } else if (event.key() == Key::D) {
-            controllerKeysHeld |= KEY_RIGHT;
-            event.setAccepted();
-        } else if (event.key() == Key::Space) {
-
-            _gameState->getPlayer()->tryJump();
-
-            event.setAccepted();
-        } else {
-            auto &debugMode = _tweakables->currentDebugMode();
-            if (debugMode.getModeName() && debugMode.hasTweakableValues()) {
-                if (event.key() == Key::Down) {
-                    debugMode.changeCurrentTweaker(1);
-                    event.setAccepted();
-                } else if (event.key() == Key::Up) {
-                    debugMode.changeCurrentTweaker(-1);
-                    event.setAccepted();
-                } else if (event.key() == Key::Left) {
-                    debugMode.currentTweaker().tweakBy(-1, getModifiersPower10Adjustment(event));
-                    event.setAccepted();
-                } else if (event.key() == Key::Right) {
-                    debugMode.currentTweaker().tweakBy(1, getModifiersPower10Adjustment(event));
-                    event.setAccepted();
-                }
+        auto key = event.key();
+        if (_debugScreen) {
+            if (_debugScreen->handleKeyPress(key, event.modifiers())) {
+                event.setAccepted();
+                return;
             }
+        }
+        if (_currentScreen) {
+            if (_currentScreen->handleKeyPress(key, event.modifiers())) {
+                event.setAccepted();
+                return;
+            }
+        }
+
+        auto keyBit = getKeyBit(key);
+        if (keyBit) {
+            _controllerKeysHeld |= keyBit;
+            event.setAccepted();
+        }
+        else switch (key) {
+            case Key::Esc:
+                toPauseScreen();
+                event.setAccepted();
+                break;
+            case Key::Space:
+                _gameState->getPlayer()->tryJump();
+                event.setAccepted();
+                break;
+            case Key::X:
+                _drawDebug = !_drawDebug;
+                event.setAccepted();
+                break;
+            default: break;
         }
     }
 
     void MagnumGameApp::keyReleaseEvent(KeyEvent &event) {
-        if (event.key() == Key::W) {
-            controllerKeysHeld &= ~KEY_FORWARD;
-            event.setAccepted();
-        } else if (event.key() == Key::S) {
-            controllerKeysHeld &= ~KEY_BACKWARD;
-            event.setAccepted();
-        } else if (event.key() == Key::A) {
-            controllerKeysHeld &= ~KEY_LEFT;
-            event.setAccepted();
-        } else if (event.key() == Key::D) {
-            controllerKeysHeld &= ~KEY_RIGHT;
-            event.setAccepted();
+        auto keyBit = getKeyBit(event.key());
+        if (keyBit) {
+            _controllerKeysHeld &= ~keyBit;
         }
     }
 
     void MagnumGameApp::pointerPressEvent(PointerEvent &event) {
+        _pointerPressLocations[event.id()] = event.position();
+
         if (event.pointer() == Pointer::MouseLeft || event.pointer() == Pointer::Finger) {
             _pointerDrag = false;
         }
     }
 
+    Vector2 MagnumGameApp::getUIPosition(Vector2 mousePosition) const {
+        auto screenSize = windowSize();
+        return Vector2(mousePosition.x(), screenSize.y() - mousePosition.y()) -
+               Vector2(screenSize) * 0.5f;
+    }
+
     void MagnumGameApp::pointerMoveEvent(PointerMoveEvent &event) {
+        if (!event.pointers() && _currentScreen && _currentScreen->handleMouseMove(getUIPosition(event.position()))) {
+            event.setAccepted();
+            return;
+        }
+
         if (event.pointers() & (Pointer::MouseLeft | Pointer::Finger)) {
             auto eventPosDelta = event.relativePosition();
             if (eventPosDelta.dot() > 4) {
@@ -107,7 +109,6 @@ namespace MagnumGame {
 
             _gameState->getCamera()->rotateFromPointer(eventPosDelta);
         }
-
     }
 
     void MagnumGameApp::scrollEvent(ScrollEvent &event) {
@@ -135,7 +136,19 @@ namespace MagnumGame {
     void MagnumGameApp::pointerReleaseEvent(PointerEvent &event) {
         if (_pointerDrag) {
             _pointerDrag = false;
+            event.setAccepted();
             return;
+        }
+
+        if (_currentScreen) {
+            auto pressLocation = _pointerPressLocations.find(event.id());
+            if (pressLocation != _pointerPressLocations.end()) {
+                if (_currentScreen->handleClick(getUIPosition(pressLocation->second),
+                                                getUIPosition(event.position()))) {
+                    event.setAccepted();
+                    return;
+                }
+            }
         }
 
         auto objectId = pickObjectIdAt(event.position());
@@ -147,9 +160,8 @@ namespace MagnumGame {
 #ifdef MAGNUM_SDL2APPLICATION_MAIN
     void MagnumGameApp::anyEvent(SDL_Event &event) {
         if (event.type == SDL_WINDOWEVENT_FOCUS_LOST) {
-            controllerKeysHeld = 0;
+            _controllerKeysHeld = 0;
         }
     }
 #endif
-
 }

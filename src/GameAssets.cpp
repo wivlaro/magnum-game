@@ -21,7 +21,33 @@ namespace MagnumGame {
 
     using namespace Magnum::Math::Literals;
 
-    GameAssets::GameAssets(Trade::AbstractImporter& importer) {
+
+    static Containers::Optional<Containers::String> findDirectory(Containers::StringView dirName) {
+        using namespace Corrade::Utility;
+
+        if (auto currentDir = Path::currentDirectory()) {
+            auto dir = *currentDir;
+            while (true) {
+                auto candidateDir = Path::join(dir, dirName);
+                if (Path::exists(candidateDir) && Path::isDirectory(candidateDir)) {
+                    Debug{} << "Found" << candidateDir << "directory";
+                    return candidateDir;
+                }
+                auto parentDir = Path::split(dir).first();
+                if (dir == parentDir) {
+                    break;
+                }
+                dir = parentDir;
+            }
+        }
+        Error{} << "Found no" << dirName << "directory, looking in upwards from current" << Path::currentDirectory();
+        return {};
+    }
+
+    GameAssets::GameAssets(Trade::AbstractImporter& importer){
+
+        _modelsDir = *findDirectory("models");
+        _fontsDir = *findDirectory("font");
 
         _texturedShader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
             .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId )};
@@ -40,6 +66,7 @@ namespace MagnumGame {
         _vertexColorShader = Shaders::VertexColorGL3D{};
 
         _playerAsset = loadAnimatedModel(importer, "characters/character-female-b.glb");
+
     }
 
     void GameAssets::loadModel(Trade::AbstractImporter& gltfImporter,
@@ -148,20 +175,18 @@ namespace MagnumGame {
 
     Containers::Pointer<AnimatorAsset> GameAssets::loadAnimatedModel(Trade::AbstractImporter &importer, Containers::StringView fileName) {
 
-        if (auto modelsDir = MagnumGameApp::findDirectory("models")) {
-            auto filePath = Utility::Path::join(*modelsDir, fileName);
-            if (!importer.openFile(filePath)) {
-                Error{} << "Can't open" << filePath << "with" << importer.plugin();
-                return {};
-            }
-            if (importer.sceneCount() == 0) {
-                Error{} << "No scene found in" << filePath;
-                importer.close();
-                return {};
-            }
-            if (importer.sceneCount() > 1) {
-                Warning{} << "Multiple scenes found in" << filePath << ", using the default one" << importer.defaultScene() << importer.sceneName(importer.defaultScene());
-            }
+        auto filePath = Utility::Path::join(_modelsDir, fileName);
+        if (!importer.openFile(filePath)) {
+            Error{} << "Can't open" << filePath << "with" << importer.plugin();
+            return {};
+        }
+        if (importer.sceneCount() == 0) {
+            Error{} << "No scene found in" << filePath;
+            importer.close();
+            return {};
+        }
+        if (importer.sceneCount() > 1) {
+            Warning{} << "Multiple scenes found in" << filePath << ", using the default one" << importer.defaultScene() << importer.sceneName(importer.defaultScene());
         }
 
         return Containers::Pointer<AnimatorAsset>(InPlaceInit, importer);

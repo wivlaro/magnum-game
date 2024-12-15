@@ -28,7 +28,6 @@ add_executable(MagnumGameApp MagnumGameApp.cpp
         MagnumGameApp.h
         DebugLines.cpp
         DebugLines.h
-        MagnumGameApp_init.cpp
         MagnumGameApp_text.cpp
         MagnumGameApp_input.cpp
         Tweakables.cpp
@@ -43,6 +42,8 @@ add_executable(MagnumGameApp MagnumGameApp.cpp
         CameraController.h
         AnimatorAsset.cpp
         AnimatorAsset.h
+        UserInterface.cpp
+        UserInterface.h
 )
 target_link_libraries(MagnumGameApp PRIVATE
         Corrade::Main

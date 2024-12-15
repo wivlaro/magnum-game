@@ -38,6 +38,7 @@
 #include "DebugLines.h"
 #include "GameState.h"
 #include "GameAssets.h"
+#include "UserInterface.h"
 
 #ifdef BT_USE_DOUBLE_PRECISION
 #error sorry, this example does not support Bullet with double precision enabled
@@ -50,7 +51,7 @@ namespace MagnumGame {
     MagnumGameApp::MagnumGameApp(const Arguments &arguments)
     : Platform::Application(arguments, NoCreate)
     , _pointerDrag{}
-    , controllerKeysHeld{}
+    , _controllerKeysHeld{}
     {
         /* Try 8x MSAA, fall back to zero samples if not possible. Enable only 2x
            MSAA if we have enough DPI. */
@@ -93,11 +94,11 @@ namespace MagnumGame {
 
         PluginManager::Manager<Trade::AbstractImporter> manager;
 
-        setupTextRenderer();
-
         auto gltfImporter = manager.loadAndInstantiate("GltfImporter");
         assert(gltfImporter);
         _assets.emplace(*gltfImporter);
+
+        setupUserInterface();
 
         _gameState.emplace(_timeline, *_assets);
         _gameState->loadLevel(*gltfImporter);
@@ -130,6 +131,18 @@ namespace MagnumGame {
         _timeline.start();
     }
 
+    bool MagnumGameApp::isPlaying() {
+        return _hudScreen && _currentScreen == _hudScreen.get();
+    }
+
+    void MagnumGameApp::startGame() {
+        _currentScreen = _hudScreen.get();
+    }
+
+    void MagnumGameApp::toPauseScreen() {
+        _currentScreen = _menuScreen.get();
+    }
+
     void MagnumGameApp::drawEvent() {
 
         _framebuffer
@@ -138,9 +151,11 @@ namespace MagnumGame {
             .clearDepth(1.0f)
             .bind();
 
-        _gameState->setControl(getPlayerControlVector());
-
-        _gameState->update();
+        if (isPlaying()) {
+            _gameState->setControl(getPlayerControlVector());
+            _gameState->update();
+            updateStatusText();
+        }
 
         //Object picking support
         _framebuffer.mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
@@ -175,8 +190,14 @@ namespace MagnumGame {
         GL::Renderer::enable(GL::Renderer::Feature::Blending);
         GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha, GL::Renderer::BlendFunction::OneMinusSourceAlpha);
 
-        renderDebugText();
-        renderGameStatusText();
+        if (_currentScreen) {
+            _ui->draw(Vector2(windowSize()), *_currentScreen);
+        }
+
+        if (_tweakables->currentDebugMode().getModeName()) {
+            _debugText->setText(_tweakables->getDebugText());
+            _ui->draw(Vector2(windowSize()), *_debugScreen);
+        }
 
         GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
 
@@ -187,8 +208,6 @@ namespace MagnumGame {
 
         CHECK_GL_ERROR(__FILE__, __LINE__);
     }
-
-
 }
 
 MAGNUM_APPLICATION_MAIN(MagnumGame::MagnumGameApp)

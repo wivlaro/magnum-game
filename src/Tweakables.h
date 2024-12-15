@@ -5,6 +5,7 @@
 #include <Corrade/Containers/Pointer.h>
 
 #include "MagnumGameApp.h"
+#include "UserInterface.h"
 
 namespace MagnumGame {
     class Tweakables {
@@ -98,5 +99,15 @@ namespace MagnumGame {
     private:
         Containers::Array<DebugMode> _debugModes;
         int _currentDebugModeIndex = 0;
+    };
+
+    class TweakableUIText : public UIText {
+    public:
+        explicit TweakableUIText(TextAsset &font, const Vector2 &position, float size, Text::Alignment alignment, Tweakables& tweakables)
+        : UIText(font,position,size,alignment)
+        , _tweakables(tweakables) {}
+        bool handleKeyPress(MagnumGameApp::Key, MagnumGameApp::Modifiers modifiers) override;
+    private:
+        Tweakables& _tweakables;
     };
 }

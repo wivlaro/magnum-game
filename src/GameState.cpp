@@ -46,12 +46,10 @@ namespace MagnumGame {
 
         const auto colliderSuffix = "-collider";
 
-        if (auto modelsDir = MagnumGameApp::findDirectory("models/levels")) {
-            auto filePath = Utility::Path::join(*modelsDir, "level-1.glb");
-            if (!importer.openFile(filePath)) {
-                Warning{} << "Can't open" << filePath << "with" << importer.plugin();
-                return;
-            }
+        auto filePath = Utility::Path::join(_assets.getModelsDir(), "levels/level-1.glb");
+        if (!importer.openFile(filePath)) {
+            Warning{} << "Can't open" << filePath << "with" << importer.plugin();
+            return;
         }
 
         arrayRemove(_levelShapes, 0, _levelShapes.size());
