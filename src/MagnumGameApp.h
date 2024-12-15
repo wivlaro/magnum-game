@@ -40,8 +40,6 @@ namespace MagnumGame {
 
         explicit MagnumGameApp(const Arguments &arguments);
 
-        static Containers::Optional<Containers::String> findDirectory(Containers::StringView dirName);
-
         enum ControllerKeys {
             KEY_NONE = 0,
             KEY_FORWARD = 1,
@@ -70,7 +68,6 @@ namespace MagnumGame {
         void anyEvent(SDL_Event &event) override;
 #endif
 
-        bool isPlaying();
 
         GL::Framebuffer _framebuffer{NoCreate};
         GL::Renderbuffer _color{NoCreate}, _objectId{NoCreate}, _depth{NoCreate};
@@ -100,21 +97,20 @@ namespace MagnumGame {
         Containers::Pointer<Tweakables> _tweakables;
 
         int _controllerKeysHeld;
-        std::unordered_map<int,Vector2> _pointerPressLocations{};
+        std::unordered_map<Long,Vector2> _pointerPressLocations{};
 
+        static ControllerKeys getKeyBit(Key key);
         Vector2 getPlayerControlVector() const;
 
         void updateStatusText();
 
+        bool isPlaying();
         void startGame();
 
         void setupUserInterface();
 
-        void renderTextBuffer(const Matrix3 & matrix3, const Color3& color3, const Color3& outlineColour, GL::Mesh &mesh);
-
         UnsignedInt pickObjectIdAt(Vector2 eventPosition);
 
-        static ControllerKeys getKeyBit(Key key);
     };
 
 }

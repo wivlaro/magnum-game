@@ -28,7 +28,7 @@ add_executable(MagnumGameApp MagnumGameApp.cpp
         MagnumGameApp.h
         DebugLines.cpp
         DebugLines.h
-        MagnumGameApp_text.cpp
+        MagnumGameApp_ui.cpp
         MagnumGameApp_input.cpp
         Tweakables.cpp
         Tweakables.h

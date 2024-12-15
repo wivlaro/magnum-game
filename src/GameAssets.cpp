@@ -21,7 +21,6 @@ namespace MagnumGame {
 
     using namespace Magnum::Math::Literals;
 
-
     static Containers::Optional<Containers::String> findDirectory(Containers::StringView dirName) {
         using namespace Corrade::Utility;
 

@@ -19,7 +19,6 @@ namespace MagnumGame {
     using namespace Corrade;
     using namespace Magnum;
 
-
     static inline Color4 textColour = 0xffffff_rgbf;
     static inline Color4 selectedTextColour = 0xffccaa_rgbf;
     static inline Color4 outlineColour = 0x111111_rgbf;
@@ -134,9 +133,6 @@ namespace MagnumGame {
         Containers::Array<Containers::Pointer<UIItem>> _items{};
         int _selectedItemIndex{-1};
     };
-
-
-
 
     class UserInterface {
     public:

@@ -37,19 +37,24 @@ namespace MagnumGame {
         return keyBit;
     }
 
+
+    Vector2 MagnumGameApp::getPlayerControlVector() const {
+        return {
+            ((_controllerKeysHeld&KEY_RIGHT)?1.0f:0.0f) - ((_controllerKeysHeld&KEY_LEFT)?1.0f:0.0f),
+            ((_controllerKeysHeld&KEY_FORWARD)?1.0f:0.0f) - ((_controllerKeysHeld&KEY_BACKWARD)?1.0f:0.0f),
+        };
+    }
+
+
     void MagnumGameApp::keyPressEvent(KeyEvent &event) {
         auto key = event.key();
-        if (_debugScreen) {
-            if (_debugScreen->handleKeyPress(key, event.modifiers())) {
-                event.setAccepted();
-                return;
-            }
+        if (_debugScreen && _debugScreen->handleKeyPress(key, event.modifiers())) {
+            event.setAccepted();
+            return;
         }
-        if (_currentScreen) {
-            if (_currentScreen->handleKeyPress(key, event.modifiers())) {
-                event.setAccepted();
-                return;
-            }
+        if (_currentScreen && _currentScreen->handleKeyPress(key, event.modifiers())) {
+            event.setAccepted();
+            return;
         }
 
         auto keyBit = getKeyBit(key);
@@ -78,6 +83,7 @@ namespace MagnumGame {
         auto keyBit = getKeyBit(event.key());
         if (keyBit) {
             _controllerKeysHeld &= ~keyBit;
+            event.setAccepted();
         }
     }
 

@@ -17,18 +17,11 @@ namespace MagnumGame {
 
 
     void MagnumGameApp::setupUserInterface() {
-        using namespace Corrade::Utility;
         auto font = _fontManager.loadAndInstantiate("StbTrueTypeFont");
         assert(font);
 
-        auto fontsDir = _assets->getFontsDir();
-        for (auto& file : *list(fontsDir, Path::ListFlag::SkipDirectories | Path::ListFlag::SkipDotAndDotDot)) {
-            auto fontFileName = Path::join(fontsDir, file);
-            if (font->openFile(fontFileName, 80.0f)) {
-
-                _ui.emplace(std::move(font));
-                break;
-            }
+        if (font->openFile(Utility::Path::join(_assets->getFontsDir(), "Roboto-Regular.ttf"), 80.0f)) {
+            _ui.emplace(std::move(font));
         }
 
         _hudScreen.emplace();
@@ -53,13 +46,6 @@ namespace MagnumGame {
             Tweakables::TweakableValue{"Large size", &fontLargeSize},
             Tweakables::TweakableValue{"Small size", &fontSmallSize},
         });
-    }
-
-    Vector2 MagnumGameApp::getPlayerControlVector() const {
-        return {
-            ((_controllerKeysHeld&KEY_RIGHT)?1.0f:0.0f) - ((_controllerKeysHeld&KEY_LEFT)?1.0f:0.0f),
-            ((_controllerKeysHeld&KEY_FORWARD)?1.0f:0.0f) - ((_controllerKeysHeld&KEY_BACKWARD)?1.0f:0.0f),
-        };
     }
 
     void MagnumGameApp::updateStatusText() {
