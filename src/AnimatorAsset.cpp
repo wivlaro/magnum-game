@@ -7,6 +7,7 @@
 #include <ranges>
 #include <assert.h>
 #include <Corrade/Containers/Array.h>
+#include <Corrade/Containers/GrowableArray.h>
 #include <Corrade/Containers/StructuredBindings.h>
 #include <Magnum/Trade/SceneData.h>
 #include <Magnum/Trade/SkinData.h>
@@ -46,11 +47,14 @@ namespace MagnumGame {
                     << (parentId == -1 ? "ROOT" : importer.objectName(parentId))
                     << (usedByMesh ? "HAS MESH" : "");
 
+            std::vector<Bone> newBones;
+
             auto childIds = sceneData->childrenFor(parentId);
             parentBone.children = Containers::Array<Bone>{NoInit, childIds.size()};
             for (size_t childIndex = 0; childIndex < childIds.size(); ++childIndex) {
                 auto childId = childIds[childIndex];
                 auto &childBone = *new(&parentBone.children[childIndex]) Bone(importer.objectName(childId));
+
 
                 if (auto transform = sceneData->transformation3DFor(childId)) {
                     childBone.defaultTranslation = transform->translation();
@@ -89,6 +93,17 @@ namespace MagnumGame {
             auto meshName = importer.meshName(meshId);
             Debug{} << "\tMesh" << meshId << ":" << meshName;
             auto meshData = importer.mesh(meshId);
+
+            for (auto attrId = 0U; attrId < meshData->attributeCount(); attrId++) {
+                auto attrName = meshData->attributeName(attrId);
+
+                Debug{} << "\tAttribute" << attrId << ":" << attrName
+                << "format=" << meshData->attributeFormat(attrId)
+                << " offset=" << meshData->attributeOffset(attrId)
+                << " stride=" << meshData->attributeStride(attrId)
+                << " arraySize=" << meshData->attributeArraySize(attrId)
+                << " morphTargetId=" << meshData->attributeMorphTargetId(attrId);
+            }
 
             [[maybe_unused]]
             auto &mesh = _meshes[meshId] = MeshTools::compile(*meshData);

@@ -47,22 +47,23 @@ namespace MagnumGame {
 
         _modelsDir = *findDirectory("models");
         _fontsDir = *findDirectory("font");
+        _shadersDir = *findDirectory("shaders");
 
-        _texturedShader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
-            .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId )};
-        _texturedShader.setAmbientColor(0x111111_rgbf)
-                .setSpecularColor(0x33000000_rgbaf)
-                .setLightPositions({{10.0f, 15.0f, 5.0f, 0.0f}});
+        _texturedShader.emplace(
+            Utility::Path::join(_shadersDir, "GameShader.vert"),
+            Utility::Path::join(_shadersDir, "GameShader.frag"));
 
+        _animatedTexturedShader.emplace(
+            Utility::Path::join(_shadersDir, "GameShader.vert"),
+            Utility::Path::join(_shadersDir, "GameShader.frag"));
+        // _animatedTexturedShader.emplace(Shaders::PhongGL::Configuration{}
+        //     .setJointCount(16, 4)
+        //     .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId | Shaders::PhongGL::Flag::DynamicPerVertexJointCount));
+        _animatedTexturedShader->setAmbientColor(0x111111_rgbf);
+                // .setSpecularColor(0x33000000_rgbaf)
+                // .setLightPositions({{10.0f, 15.0f, 5.0f, 0.0f}});
 
-        _animatedTexturedShader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
-            .setJointCount(16, 4)
-            .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId | Shaders::PhongGL::Flag::DynamicPerVertexJointCount)};
-        _animatedTexturedShader.setAmbientColor(0x111111_rgbf)
-                .setSpecularColor(0x33000000_rgbaf)
-                .setLightPositions({{10.0f, 15.0f, 5.0f, 0.0f}});
-
-        _vertexColorShader = Shaders::VertexColorGL3D{};
+        _vertexColorShader.emplace();
 
         _playerAsset = loadAnimatedModel(importer, "characters/character-female-b.glb");
 

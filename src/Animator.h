@@ -17,6 +17,7 @@
 #include "MagnumGameApp.h"
 #include "MagnumGameCommon.h"
 #include "AnimatorAsset.h"
+#include "GameShader.h"
 
 namespace MagnumGame {
     using namespace Magnum;
@@ -31,7 +32,7 @@ namespace MagnumGame {
         typedef SceneGraph::Object<SceneGraph::TranslationRotationScalingTransformation3D> BoneObject;
         typedef SceneGraph::Scene<SceneGraph::TranslationRotationScalingTransformation3D> BoneScene;
 
-        explicit Animator(Object3D &rootObject, const AnimatorAsset &asset, Shaders::PhongGL &meshShader,
+        explicit Animator(Object3D &rootObject, const AnimatorAsset &asset, GameShader &meshShader,
                           SceneGraph::DrawableGroup3D *animDrawables, SceneGraph::DrawableGroup3D *meshDrawables);
 
         Skin& getSkin(size_t skinIndex);

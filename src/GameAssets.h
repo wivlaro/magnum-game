@@ -9,6 +9,7 @@
 #include <Magnum/Trade/Trade.h>
 
 #include "Animator.h"
+#include "GameShader.h"
 
 namespace MagnumGame {
 
@@ -24,14 +25,11 @@ public:
         Containers::Pointer<AnimatorAsset> loadAnimatedModel(Trade::AbstractImporter &importer,
                                                                     Containers::StringView fileName);
 
-        btCapsuleShape& getPlayerShape() { return _bPlayerShape; }
-
-        AnimatorAsset* getPlayerAsset() { return _playerAsset.get(); }
-
-        Shaders::PhongGL& getAnimatedTexturedShader() { return _animatedTexturedShader; }
-        Shaders::PhongGL& getTexturedShader() { return _texturedShader; }
-
-        Shaders::VertexColorGL3D& getVertexColorShader() { return _vertexColorShader; }
+        auto& getPlayerShape() { return _bPlayerShape; }
+        auto getPlayerAsset() { return _playerAsset.get(); }
+        auto& getAnimatedTexturedShader() { return *_animatedTexturedShader; }
+        auto& getTexturedShader() { return *_texturedShader; }
+        auto& getVertexColorShader() { return *_vertexColorShader; }
 
         Containers::StringView getModelsDir() const { return _modelsDir; }
 
@@ -39,16 +37,18 @@ public:
 
     private:
 
-        Shaders::PhongGL _texturedShader{NoCreate};
-        Shaders::PhongGL _animatedTexturedShader{NoCreate};
-        Shaders::VertexColorGL3D _vertexColorShader{NoCreate};
+        Containers::String _modelsDir;
+        Containers::String _fontsDir;
+        Containers::String _shadersDir;
+
+        Containers::Pointer<GameShader> _texturedShader{};
+        Containers::Pointer<GameShader> _animatedTexturedShader{};
+        Containers::Pointer<Shaders::VertexColorGL3D> _vertexColorShader{};
 
         btStaticPlaneShape _bGroundShape{{0,1,0},0};
         btCapsuleShape _bPlayerShape{0.125, 0.5};
         Containers::Pointer<AnimatorAsset> _playerAsset{};
 
-        Containers::String _modelsDir;
-        Containers::String _fontsDir;
 
         void loadModel(Trade::AbstractImporter &gltfImporter, Trade::SceneData &sceneData,
                               Containers::StringView objectName, GL::Mesh *outMesh, Matrix4x4 *outTransform,

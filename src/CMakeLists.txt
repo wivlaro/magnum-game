@@ -44,6 +44,8 @@ add_executable(MagnumGameApp MagnumGameApp.cpp
         AnimatorAsset.h
         UserInterface.cpp
         UserInterface.h
+        GameShader.cpp
+        GameShader.h
 )
 target_link_libraries(MagnumGameApp PRIVATE
         Corrade::Main

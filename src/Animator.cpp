@@ -20,7 +20,7 @@
 
 namespace MagnumGame {
 
-    Animator::Animator(Object3D &rootObject, const AnimatorAsset &asset, Shaders::PhongGL &meshShader,
+    Animator::Animator(Object3D &rootObject, const AnimatorAsset &asset, GameShader &meshShader,
                        SceneGraph::DrawableGroup3D *animDrawables, SceneGraph::DrawableGroup3D *meshDrawables)
         : SceneGraph::Drawable3D(rootObject, animDrawables)
     , _fakeBoneCamera{_boneScene}

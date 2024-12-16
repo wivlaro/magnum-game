@@ -51,9 +51,8 @@ Use glTF 2.0 exporter with .glb format for most optimal performance.
 ## TO DO
 
 * Shadow caster/receiver drawables
-* Menu / game system
+* Add sky box
 * Try faster Freetype lib where available
-* Platform support - Emscripten 
 * Platform support - Mobile? 
 
 ## Credits

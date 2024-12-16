@@ -16,6 +16,7 @@
 
 
 namespace MagnumGame {
+    class GameShader;
 
     /**
      * @brief Textured, opaque drawable Magnum Feature, attached to a scene object.
@@ -34,6 +35,12 @@ namespace MagnumGame {
         explicit TexturedDrawable(SceneGraph::AbstractObject3D &object,
                                   GL::Texture2D* texture,
                                   Shaders::PhongGL &shader,
+                                  GL::Mesh& mesh,
+                                  SceneGraph::DrawableGroup3D &drawables,
+                                  UnsignedInt objectId = 0);
+        explicit TexturedDrawable(SceneGraph::AbstractObject3D &object,
+                                  GL::Texture2D* texture,
+                                  GameShader &shader,
                                   GL::Mesh& mesh,
                                   SceneGraph::DrawableGroup3D &drawables,
                                   UnsignedInt objectId = 0);
@@ -60,7 +67,8 @@ namespace MagnumGame {
         Containers::Optional<GL::Texture2D> _ownTexture;
         GL::Texture2D* _texture{};
         GL::Mesh& _mesh;
-        Shaders::PhongGL& _shader;
+        Shaders::PhongGL* _phongShader;
+        GameShader* _gameShader;
 
         UnsignedInt _objectId{};
         Containers::Array<Matrix4>* _boneMatrices{};

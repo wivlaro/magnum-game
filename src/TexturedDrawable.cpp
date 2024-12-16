@@ -13,6 +13,8 @@
 #include <Magnum/GL/Texture.h>
 #include "TexturedDrawable.h"
 
+#include "GameShader.h"
+
 
 namespace MagnumGame {
     TexturedDrawable::TexturedDrawable(SceneGraph::AbstractObject3D &object,
@@ -26,7 +28,8 @@ namespace MagnumGame {
           _ownTexture{makeTexture(image)},
           _texture(&*_ownTexture),
           _mesh{mesh},
-          _shader{shader},
+          _phongShader{&shader},
+          _gameShader{nullptr},
           _objectId{objectId} {
     }
 
@@ -41,7 +44,27 @@ namespace MagnumGame {
           _ownTexture{Containers::NullOpt},
           _texture(texture),
           _mesh{mesh},
-          _shader{shader},
+          _phongShader{&shader},
+          _gameShader{nullptr},
+          _objectId(objectId) {
+        if (_texture) {
+            Debug{} << "TexturedDrawable::TexturedDrawable() " << texture << texture->id();
+        }
+    }
+
+    TexturedDrawable::TexturedDrawable(SceneGraph::AbstractObject3D &object,
+                                       GL::Texture2D *texture,
+                                       GameShader &shader,
+                                       GL::Mesh &mesh,
+                                       SceneGraph::DrawableGroup3D &drawables,
+                                       UnsignedInt objectId)
+        : SceneGraph::Drawable3D{object, &drawables},
+          _color{0xffffffff_rgbaf},
+          _ownTexture{Containers::NullOpt},
+          _texture(texture),
+          _mesh{mesh},
+    _phongShader(nullptr),
+          _gameShader{&shader},
           _objectId(objectId) {
         if (_texture) {
             Debug{} << "TexturedDrawable::TexturedDrawable() " << texture << texture->id();
@@ -61,36 +84,65 @@ namespace MagnumGame {
     void TexturedDrawable::draw(const Matrix4 &transformation, SceneGraph::Camera3D &camera) {
         if (_color.a() <= 0.0f) return;
         CHECK_GL_ERROR(__FILE__, __LINE__);
-        _shader.setProjectionMatrix(camera.projectionMatrix());
-        _shader.setTransformationMatrix(transformation);
-        _shader.setDiffuseColor(_color);
-        // _shader.setLightRanges({Constants::inf()});
-        _shader.setAmbientColor({ambientColour, ambientColour, ambientColour, 1.0f});
-        _shader.setLightColors({Color3{lightColour, lightColour, lightColour}});
-        _shader.setSpecularColor(_color);
-        _shader.setShininess(shininess);
-        _shader.setSpecularColor({specular, specular,specular,1.0f});
-        _shader.setLightPositions({object().absoluteTransformationMatrix().inverted() * Vector4{lightDirection, 0.0f}.normalized()});
-        if (_texture) {
-            _shader.bindDiffuseTexture(*_texture);
+        if (_phongShader) {
+            auto& _shader = *_phongShader;
+            _shader.setProjectionMatrix(camera.projectionMatrix());
+            _shader.setTransformationMatrix(transformation);
+            _shader.setDiffuseColor(_color);
+            // _shader.setLightRanges({Constants::inf()});
+            _shader.setAmbientColor({ambientColour, ambientColour, ambientColour, 1.0f});
+            _shader.setLightColors({Color3{lightColour, lightColour, lightColour}});
+            _shader.setSpecularColor(_color);
+            _shader.setShininess(shininess);
+            _shader.setSpecularColor({specular, specular,specular,1.0f});
+            _shader.setLightPositions({object().absoluteTransformationMatrix().inverted() * Vector4{lightDirection, 0.0f}.normalized()});
+            if (_texture) {
+                _shader.bindDiffuseTexture(*_texture);
+                CHECK_GL_ERROR(__FILE__, __LINE__);
+            }
+            if (_shader.flags() & Shaders::PhongGL::Flag::ObjectId) {
+                _shader.setObjectId(_objectId);
+            }
+            if (_shader.flags() & Shaders::PhongGL::Flag::DynamicPerVertexJointCount) {
+                if (_boneMatrices != nullptr) {
+                    _shader.setPerVertexJointCount(_perVertexJointCount, _secondaryPerVertexJointCount);
+                    CHECK_GL_ERROR(__FILE__, __LINE__);
+                    _shader.setJointMatrices(*_boneMatrices);
+                    CHECK_GL_ERROR(__FILE__, __LINE__);
+                } else {
+                    _shader.setPerVertexJointCount(0, 0);
+                }
+            }
             CHECK_GL_ERROR(__FILE__, __LINE__);
+
+            _shader.draw(_mesh);
         }
-        if (_shader.flags() & Shaders::PhongGL::Flag::ObjectId) {
-            _shader.setObjectId(_objectId);
-        }
-        if (_shader.flags() & Shaders::PhongGL::Flag::DynamicPerVertexJointCount) {
+        else if (_gameShader) {
+
+            auto& _shader = *_gameShader;
+            _shader.setProjectionMatrix(camera.projectionMatrix());
+            _shader.setTransformationMatrix(transformation);
+            _shader.setNormalMatrix(transformation.rotation());
+            _shader.setSpecularColour(_color.rgb());
+            _shader.setModelMatrix(object().absoluteTransformationMatrix());
+            _shader.setLightVector(lightDirection);
+            _shader.setAmbientColor({ambientColour, ambientColour, ambientColour});
+            if (_texture) {
+                _shader.setDiffuseTexture(*_texture);
+                CHECK_GL_ERROR(__FILE__, __LINE__);
+            }
             if (_boneMatrices != nullptr) {
-                _shader.setPerVertexJointCount(_perVertexJointCount, _secondaryPerVertexJointCount);
+                _shader.setPerVertexJointCount(_perVertexJointCount);
                 CHECK_GL_ERROR(__FILE__, __LINE__);
                 _shader.setJointMatrices(*_boneMatrices);
                 CHECK_GL_ERROR(__FILE__, __LINE__);
             } else {
-                _shader.setPerVertexJointCount(0, 0);
+                _shader.setPerVertexJointCount(0);
             }
-        }
-        CHECK_GL_ERROR(__FILE__, __LINE__);
+            CHECK_GL_ERROR(__FILE__, __LINE__);
 
-        _shader.draw(_mesh);
+            _shader.draw(_mesh);
+        }
     }
 
     void TexturedDrawable::setEnabled(bool b) {
