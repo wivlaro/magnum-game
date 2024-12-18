@@ -30,7 +30,9 @@ ShadowLight::ShadowLight(Object3D& parent, Range1D zPlanes, int numShadowLevels,
 {
 	Range2Di viewport = {{0, 0}, shadowMapSize};
 	_shadowTexture.emplace();
+#ifndef MAGNUM_TARGET_WEBGL
 	_shadowTexture->setLabel("Shadow texture");
+#endif
 	//	shadowTexture.setStorage(1, Magnum::TextureFormat::DepthComponent, shadowFramebuffer.viewport().size());
 	_shadowTexture->setImage(0, TextureFormat::DepthComponent, ImageView3D(GL::PixelFormat::DepthComponent, PixelType::Float, {viewport.size(), static_cast<int>(_numLayers)}, nullptr));
 	_shadowTexture->setMaxLevel(0);
@@ -45,7 +47,9 @@ ShadowLight::ShadowLight(Object3D& parent, Range1D zPlanes, int numShadowLevels,
 	for (auto i = 0u; i < _numLayers; i++) {
 		auto& layer = arrayAppend(_layers, InPlaceInit, viewport);
 		auto& shadowFramebuffer = layer.shadowFramebuffer;
+#ifndef MAGNUM_TARGET_WEBGL
 		shadowFramebuffer.setLabel("Shadow framebuffer " + std::to_string(i));
+#endif
 		shadowFramebuffer.bind();
 		shadowFramebuffer.attachTextureLayer(Framebuffer::BufferAttachment::Depth, *_shadowTexture, 0, i);
 		shadowFramebuffer.mapForDraw(Framebuffer::DrawAttachment::None);
