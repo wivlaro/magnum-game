@@ -4,7 +4,7 @@
 
 #define STR(s) #s
 #define XSTR(x) STR(x)
-#define CHECK_GL_ERROR(file, line) { GL::Renderer::Error err; while ((err = GL::Renderer::error()) != GL::Renderer::Error::NoError) { Error() << (file ":" STR(line)) << "Error: " << err; } }
+#define CHECK_GL_ERROR() { GL::Renderer::Error err; while ((err = GL::Renderer::error()) != GL::Renderer::Error::NoError) { Error() << (__FILE__ ":" STR(__LINE__)) << "Error: " << err; } }
 
 #define DISALLOW_COPY(TypeName) TypeName(const TypeName&) = delete; TypeName& operator=(const TypeName&) = delete;
 

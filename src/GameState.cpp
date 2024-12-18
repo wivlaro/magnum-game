@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <Corrade/Containers/GrowableArray.h>
+#include <Corrade/Containers/Reference.h>
 #include <Corrade/Utility/DebugStl.h>
 #include <Corrade/Utility/Path.h>
 #include <Corrade/Utility/String.h>
@@ -16,6 +17,9 @@
 
 #include "GameAssets.h"
 #include "Player.h"
+#include "ShadowCasterDrawable.h"
+#include "ShadowLight.h"
+#include "GameShader.h"
 
 namespace MagnumGame {
     GameState::GameState(const Timeline& timeline, GameAssets& assets)
@@ -29,10 +33,16 @@ namespace MagnumGame {
         _debugDraw.setMode(BulletIntegration::DebugDraw::Mode::DrawWireframe);
         _bWorld.setDebugDrawer(&_debugDraw);
 
-        _cameraController.emplace(_scene);
+        Float near = 0.1f, far = 128.0f;
+        _cameraController.emplace(_scene, near, far);
 
         _debugResourceManager.set(DebugRendererGroup, DebugTools::ObjectRendererOptions{}.setSize(1.f));
+
+        _shadowLight.emplace(_scene, 4, near, far);
+
     }
+
+    GameState::~GameState() = default;
 
     void GameState::setControl(Vector2 controlVector) {
 
@@ -168,12 +178,43 @@ namespace MagnumGame {
                         rigidBody.syncPose();
                     }
 
+                    rigidBody.addFeature<ShadowCasterDrawable>(_assets.getShadowCasterShader(), _shadowCasterDrawables).setMesh(mesh);
                     rigidBody.addFeature<TexturedDrawable>(_levelMaterials[materialId].texture, _assets.getTexturedShader(), *mesh, _opaqueDrawables);
                 }
             }
         }
 
-        CHECK_GL_ERROR(__FILE__,__LINE__);
+        CHECK_GL_ERROR();
+    }
+
+    void GameState::drawShadowBuffer() {
+
+        if (!_shadowLight) return;
+
+        auto camera_position = _cameraController->getCameraObjectMatrix().translation();
+        auto cameraMatrix = Matrix4::lookAt(camera_position, _player->getPosition(), Vector3(0,1,0));
+        if (_shadowLight)
+        {
+            auto imvp = _cameraController->getTransformationProjectionMatrix().inverted();
+            _shadowLight->setTarget(TexturedDrawable::lightDirection, cameraMatrix[2].xyz(), imvp);
+        }
+
+        _shadowLight->render(_shadowCasterDrawables);
+
+        Containers::Array<Matrix4> shadowMatrices(NoInit, _shadowLight->getNumLayers());
+        for (auto layerIndex = 0u; layerIndex < _shadowLight->getNumLayers(); layerIndex++) {
+            shadowMatrices[layerIndex] = _shadowLight->getLayerMatrix(layerIndex);
+        }
+        auto setupShaderForShadows = [&](GameShader* shader) {
+            shader->setShadowmapTexture(_shadowLight->getShadowmapTextureArray());
+            shader->setShadowmapMatrices(shadowMatrices);
+            auto& shadowCutPlanes = _shadowLight->getCutPlanes();
+            shader->setShadowCutPlanes({shadowCutPlanes.data(), shadowCutPlanes.size()});
+            shader->setLightVector(_cameraController->getCameraMatrix().rotationScaling() * _shadowLight->transformation()[2].xyz());
+            //				shader->setShadowmapMatrix(shadowLight->camera().projectionMatrix() * shadowLight->camera().cameraMatrix());
+        };
+        setupShaderForShadows(&_assets.getTexturedShader());
+        setupShaderForShadows(&_assets.getAnimatedTexturedShader());
     }
 
     void GameState::drawOpaque() {
@@ -191,6 +232,14 @@ namespace MagnumGame {
         auto& animationOffset = rigidBody->addChild<Object3D>();
         Animator *animator = &animationOffset.addFeature<Animator>(*_assets.getPlayerAsset(), _assets.getAnimatedTexturedShader(),
                                                                    &_animatorDrawables, &_opaqueDrawables);
+
+        for (auto& meshDrawable : animator->meshDrawables()) {
+            auto& skinMeshObject3D = dynamic_cast<Object3D &>(meshDrawable.get().object());
+            skinMeshObject3D.addFeature<ShadowCasterDrawable>(_assets.getAnimatedShadowCasterShader(), _shadowCasterDrawables)
+                .setMesh(&meshDrawable.get().getMesh())
+                .setSkinMeshDrawable(meshDrawable.get().getSkinMeshDrawable());
+        }
+
         animationOffset.setTransformation(Matrix4::translation({0, -0.4f, 0}));
 
         auto& rb = rigidBody->rigidBody();

@@ -12,8 +12,8 @@ in mediump vec3 transformedNormal;
 in highp vec3 cameraDirection;
 
 in mediump vec2 interpolatedTextureCoords;
-in highp vec3 shadowCoord[NUM_SHADOW_MAP_LEVELS];
-uniform float shadowDepthSplits[NUM_SHADOW_MAP_LEVELS];
+in highp vec3 shadowCoord[ENABLE_SHADOWMAP_LEVELS];
+uniform float shadowDepthSplits[ENABLE_SHADOWMAP_LEVELS];
 
 out lowp vec4 color;
 
@@ -68,7 +68,7 @@ void main() {
         intensity = 0.0f;
     }
     else {
-        for (; shadowLevel < NUM_SHADOW_MAP_LEVELS; shadowLevel++) {
+        for (; shadowLevel < ENABLE_SHADOWMAP_LEVELS; shadowLevel++) {
             vec3 levelShadowCoord = shadowCoord[shadowLevel];
             bool inRange = levelShadowCoord.x > 0 && levelShadowCoord.y > 0 && levelShadowCoord.x < 1 && levelShadowCoord.y < 1 && levelShadowCoord.z > 0 && levelShadowCoord.z < 1;
             if (inRange) {
@@ -92,6 +92,7 @@ void main() {
     vec3 shadowFactor = mix(vec3(0.5), vec3(1.0), shadow); // Adjust shadow darkness as needed
 
     vec3 finalColor = shadowFactor * (ambient + diffuse + specular);
+//    finalColor = vec3(shadowFactor.x, 0.5, 0.5);
 
     color = vec4(finalColor, 1.0); // Output final color with alpha
 

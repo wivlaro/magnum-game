@@ -7,7 +7,7 @@
 #include <Magnum/SceneGraph/Scene.h>
 
 namespace MagnumGame {
-    CameraController::CameraController(Scene3D &scene)
+    CameraController::CameraController(Scene3D &scene, float near, float far)
         : _cameraObject(scene.addChild<Object3D>(nullptr))
           , _camera(_cameraObject.addFeature<SceneGraph::Camera3D>())
           , _targetObject{}
@@ -17,7 +17,7 @@ namespace MagnumGame {
                 .translate(Vector3::zAxis(30.0f))
                 .rotateX(-90.0_degf);
         _camera.setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
-                .setProjectionMatrix(Matrix4::perspectiveProjection(30.0_degf, 1.0f, 0.1f, 100.0f))
+                .setProjectionMatrix(Matrix4::perspectiveProjection(30.0_degf, 1.0f, near, far))
                 .setViewport(GL::defaultFramebuffer.viewport().size());
     }
 

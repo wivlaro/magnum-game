@@ -9,17 +9,22 @@
 #include <Corrade/Tags.h>
 #include <Magnum/SceneGraph/Drawable.h>
 #include <Corrade/Containers/String.h>
+#include <Corrade/Containers/Array.h>
+#include <Corrade/Containers/ArrayView.h>
 #include <Corrade/Containers/StringStlHash.h>
+#include <Corrade/Containers/Reference.h>
 #include <Magnum/SceneGraph/Camera.h>
 #include <Magnum/Trade/AnimationData.h>
 #include <Magnum/Trade/MaterialData.h>
 
+
 #include "MagnumGameApp.h"
 #include "MagnumGameCommon.h"
 #include "AnimatorAsset.h"
-#include "GameShader.h"
 
 namespace MagnumGame {
+    class TexturedDrawable;
+    class GameShader;
     using namespace Magnum;
 
     class Skin;
@@ -42,6 +47,8 @@ namespace MagnumGame {
         void draw(const Matrix4 &transformationMatrix, SceneGraph::Camera3D &camera) override;
 
         void play(const Containers::StringView& animationName, bool restart);
+
+        Containers::Array<Containers::Reference<TexturedDrawable>>& meshDrawables() { return _meshDrawables; }
 
     private:
 
@@ -67,11 +74,18 @@ namespace MagnumGame {
         SceneGraph::Camera3D _fakeBoneCamera;
         SceneGraph::DrawableGroup3D _jointDrawables{};
         Containers::Array<Skin> _skins;
+        Containers::Array<Containers::Reference<TexturedDrawable>> _meshDrawables{};
 
         Animation* _currentAnimation{};
         Containers::String _defaultAnimationName;
 
         std::unordered_map<Containers::String, Animation> _animationPlayers{};
+    };
+
+    struct SkinMeshDrawable {
+        Containers::Array<Matrix4>* boneMatrices{};
+        UnsignedInt perVertexJointCount{};
+        UnsignedInt secondaryPerVertexJointCount{};
     };
 
     class Skin {

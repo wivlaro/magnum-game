@@ -83,37 +83,37 @@ namespace MagnumGame {
 
     void TexturedDrawable::draw(const Matrix4 &transformation, SceneGraph::Camera3D &camera) {
         if (_color.a() <= 0.0f) return;
-        CHECK_GL_ERROR(__FILE__, __LINE__);
+        CHECK_GL_ERROR();
         if (_phongShader) {
             auto& _shader = *_phongShader;
             _shader.setProjectionMatrix(camera.projectionMatrix());
             _shader.setTransformationMatrix(transformation);
             _shader.setDiffuseColor(_color);
             // _shader.setLightRanges({Constants::inf()});
-            _shader.setAmbientColor({ambientColour, ambientColour, ambientColour, 1.0f});
-            _shader.setLightColors({Color3{lightColour, lightColour, lightColour}});
+            _shader.setAmbientColor({ambientColor, ambientColor, ambientColor, 1.0f});
+            _shader.setLightColors({Color3{lightColor, lightColor, lightColor}});
             _shader.setSpecularColor(_color);
             _shader.setShininess(shininess);
             _shader.setSpecularColor({specular, specular,specular,1.0f});
             _shader.setLightPositions({object().absoluteTransformationMatrix().inverted() * Vector4{lightDirection, 0.0f}.normalized()});
             if (_texture) {
                 _shader.bindDiffuseTexture(*_texture);
-                CHECK_GL_ERROR(__FILE__, __LINE__);
+                CHECK_GL_ERROR();
             }
             if (_shader.flags() & Shaders::PhongGL::Flag::ObjectId) {
                 _shader.setObjectId(_objectId);
             }
             if (_shader.flags() & Shaders::PhongGL::Flag::DynamicPerVertexJointCount) {
-                if (_boneMatrices != nullptr) {
-                    _shader.setPerVertexJointCount(_perVertexJointCount, _secondaryPerVertexJointCount);
-                    CHECK_GL_ERROR(__FILE__, __LINE__);
-                    _shader.setJointMatrices(*_boneMatrices);
-                    CHECK_GL_ERROR(__FILE__, __LINE__);
+                if (_skinMeshDrawable.boneMatrices != nullptr) {
+                    _shader.setPerVertexJointCount(_skinMeshDrawable.perVertexJointCount, _skinMeshDrawable.secondaryPerVertexJointCount);
+                    CHECK_GL_ERROR();
+                    _shader.setJointMatrices(*_skinMeshDrawable.boneMatrices);
+                    CHECK_GL_ERROR();
                 } else {
                     _shader.setPerVertexJointCount(0, 0);
                 }
             }
-            CHECK_GL_ERROR(__FILE__, __LINE__);
+            CHECK_GL_ERROR();
 
             _shader.draw(_mesh);
         }
@@ -123,23 +123,23 @@ namespace MagnumGame {
             _shader.setProjectionMatrix(camera.projectionMatrix());
             _shader.setTransformationMatrix(transformation);
             _shader.setNormalMatrix(transformation.rotation());
-            _shader.setSpecularColour(_color.rgb());
+            _shader.setSpecularColor(_color.rgb());
             _shader.setModelMatrix(object().absoluteTransformationMatrix());
             _shader.setLightVector(lightDirection);
-            _shader.setAmbientColor({ambientColour, ambientColour, ambientColour});
+            _shader.setLightColor({lightColor, lightColor, lightColor});
+            _shader.setAmbientColor({ambientColor, ambientColor, ambientColor});
             if (_texture) {
                 _shader.setDiffuseTexture(*_texture);
-                CHECK_GL_ERROR(__FILE__, __LINE__);
+                CHECK_GL_ERROR();
             }
-            if (_boneMatrices != nullptr) {
-                _shader.setPerVertexJointCount(_perVertexJointCount);
-                CHECK_GL_ERROR(__FILE__, __LINE__);
-                _shader.setJointMatrices(*_boneMatrices);
-                CHECK_GL_ERROR(__FILE__, __LINE__);
+            if (_skinMeshDrawable.boneMatrices != nullptr) {
+                _shader.setPerVertexJointCount(_skinMeshDrawable.perVertexJointCount);
+                CHECK_GL_ERROR();
+                _shader.setJointMatrices(*_skinMeshDrawable.boneMatrices);
             } else {
                 _shader.setPerVertexJointCount(0);
             }
-            CHECK_GL_ERROR(__FILE__, __LINE__);
+            CHECK_GL_ERROR();
 
             _shader.draw(_mesh);
         }
@@ -172,9 +172,12 @@ namespace MagnumGame {
 
     void TexturedDrawable::setSkin(Skin &skin, UnsignedInt perVertexJointCount,
                                    UnsignedInt secondaryPerVertexJointCount) {
-        Debug{} << "TexturedDrawable setSkin boneMatrices" << &skin.boneMatrices() << "data @" <<skin.boneMatrices().data() << "size" << skin.boneMatrices().size();
-        _boneMatrices = &skin.boneMatrices();
-        _perVertexJointCount = perVertexJointCount;
-        _secondaryPerVertexJointCount = secondaryPerVertexJointCount;
+        Debug{} << "TexturedDrawable setSkin boneMatrices" << &skin.boneMatrices() << "data @" << skin.boneMatrices().
+                data() << "size" << skin.boneMatrices().size();
+        _skinMeshDrawable = {
+            &skin.boneMatrices(),
+            perVertexJointCount,
+            secondaryPerVertexJointCount
+        };
     }
 }

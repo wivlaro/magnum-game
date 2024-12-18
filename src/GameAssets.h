@@ -5,19 +5,19 @@
 
 #include <Magnum/GL/Mesh.h>
 #include <BulletCollision/CollisionShapes/btConvexHullShape.h>
-#include <Magnum/Shaders/PhongGL.h>
 #include <Magnum/Trade/Trade.h>
 
 #include "Animator.h"
-#include "GameShader.h"
 
 namespace MagnumGame {
+    class ShadowCasterShader;
 
-	using namespace Magnum;
+    using namespace Magnum;
 
     class GameAssets {
 public:
         explicit GameAssets(Trade::AbstractImporter& );
+        ~GameAssets();
 
         static Containers::Array<GL::Texture2D> loadTextures(Trade::AbstractImporter &importer);
         static Containers::Array<MaterialAsset> loadMaterials(Trade::AbstractImporter &importer, Containers::Array<GL::Texture2D>& textures);
@@ -27,6 +27,9 @@ public:
 
         auto& getPlayerShape() { return _bPlayerShape; }
         auto getPlayerAsset() { return _playerAsset.get(); }
+
+        auto& getShadowCasterShader() { return *_shadowCasterShader; }
+        auto& getAnimatedShadowCasterShader() { return *_animatedShadowCasterShader; }
         auto& getAnimatedTexturedShader() { return *_animatedTexturedShader; }
         auto& getTexturedShader() { return *_texturedShader; }
         auto& getVertexColorShader() { return *_vertexColorShader; }
@@ -41,6 +44,8 @@ public:
         Containers::String _fontsDir;
         Containers::String _shadersDir;
 
+        Containers::Pointer<ShadowCasterShader> _shadowCasterShader{};
+        Containers::Pointer<ShadowCasterShader> _animatedShadowCasterShader{};
         Containers::Pointer<GameShader> _texturedShader{};
         Containers::Pointer<GameShader> _animatedTexturedShader{};
         Containers::Pointer<Shaders::VertexColorGL3D> _vertexColorShader{};

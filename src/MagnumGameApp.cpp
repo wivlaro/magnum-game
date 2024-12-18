@@ -36,6 +36,7 @@
 #include "GameState.h"
 #include "UserInterface.h"
 
+
 #ifdef BT_USE_DOUBLE_PRECISION
 #error sorry, this example does not support Bullet with double precision enabled
 #endif
@@ -79,7 +80,7 @@ namespace MagnumGame {
                    .mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
                                 {Shaders::PhongGL::ObjectIdOutput, GL::Framebuffer::ColorAttachment{1}}});
 
-        CHECK_GL_ERROR(__FILE__,__LINE__);
+        CHECK_GL_ERROR();
 
         GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
         GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
@@ -153,6 +154,8 @@ namespace MagnumGame {
             updateStatusText();
         }
 
+        _gameState->drawShadowBuffer();
+
         //Object picking support
         _framebuffer.mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
                                 {Shaders::PhongGL::ObjectIdOutput, GL::Framebuffer::ColorAttachment{1}}});
@@ -202,7 +205,7 @@ namespace MagnumGame {
         _timeline.nextFrame();
         redraw();
 
-        CHECK_GL_ERROR(__FILE__, __LINE__);
+        CHECK_GL_ERROR();
     }
 }
 

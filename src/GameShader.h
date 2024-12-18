@@ -19,12 +19,12 @@ class GameShader : public GL::AbstractShaderProgram
 public:
 
 	typedef Shaders::GenericGL3D::Position Position;
-	typedef Shaders::GenericGL3D::Normal Normal;
 	typedef Shaders::GenericGL3D::TextureCoordinates TextureCoordinates;
+	typedef Shaders::GenericGL3D::Normal Normal;
 	typedef Shaders::GenericGL3D::JointIds JointIds;
 	typedef Shaders::GenericGL3D::Weights Weights;
 
-    explicit GameShader(const std::string& vertFilename, const std::string& fragFilename);
+    explicit GameShader(const std::string& vertFilename, const std::string& fragFilename, int maxAnimationBones);
 
 	~GameShader() override = default;
 
@@ -78,7 +78,12 @@ public:
 		return *this;
 	}
 
-	GameShader& setSpecularColour(const Vector3& f) {
+	GameShader& setLightColor(const Vector3& f) {
+		setUniform(lightColorUniform, f);
+		return *this;
+	}
+
+	GameShader& setSpecularColor(const Vector3& f) {
 		setUniform(specularColorUniform, f);
 		return *this;
 	}
@@ -106,6 +111,7 @@ private:
 		shadowCutPlanesUniform,
 		specularColorUniform,
 		lightVectorUniform,
+		lightColorUniform,
 		shininessUniform,
 		ambientColorUniform,
 		perVertexJointCountUniform,

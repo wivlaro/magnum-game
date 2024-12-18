@@ -53,8 +53,12 @@ namespace MagnumGame {
 
         void setSkin(Skin& skin, UnsignedInt perVertexJointCount, UnsignedInt secondaryPerVertexJointCount);
 
-        static inline float ambientColour = 0.2f;
-        static inline float lightColour = 1.0f;
+        GL::Mesh& getMesh() const { return _mesh;}
+
+        SkinMeshDrawable getSkinMeshDrawable() const { return _skinMeshDrawable; }
+
+        static inline float ambientColor = 0.5f;
+        static inline float lightColor = 0.5f;
         static inline float shininess = 20.0f;
         static inline float specular = 0.3f;
         static inline Vector3 lightDirection = {0.4f, 0.5f, 0.3f};
@@ -71,9 +75,7 @@ namespace MagnumGame {
         GameShader* _gameShader;
 
         UnsignedInt _objectId{};
-        Containers::Array<Matrix4>* _boneMatrices{};
-        UnsignedInt _perVertexJointCount{};
-        UnsignedInt _secondaryPerVertexJointCount{};
+        SkinMeshDrawable _skinMeshDrawable{};
     };
 
 }

@@ -1,8 +1,6 @@
 
-
 uniform highp mat4 transformationMatrix;
 uniform highp mat4 projectionMatrix;
-uniform highp mat4 shadowmapMatrix[NUM_SHADOW_MAP_LEVELS];
 uniform mediump mat3 normalMatrix;
 uniform mat4 modelMatrix;
 
@@ -10,22 +8,22 @@ layout(location = 0) in highp vec3 position;
 layout(location = 1) in mediump vec2 textureCoordinates;
 layout(location = 2) in highp vec3 normal;
 
-#ifdef MAX_JOINT_COUNT
-uniform int perVertexJointCount;
-uniform mat4 jointMatrices[MAX_JOINT_COUNT];
-
-layout(location = 6) in mediump uvec4 jointIds;
-layout(location = 7) in mediump vec4 weights;
-#endif
-
 out mediump vec2 interpolatedTextureCoords;
 out mediump vec3 transformedNormal;
 out highp vec3 lightDirection;
 out highp vec3 cameraDirection;
-out highp vec3 shadowCoord[NUM_SHADOW_MAP_LEVELS];
-out mediump vec3 worldPos;
 
-#ifdef MAX_JOINT_COUNT
+#ifdef ENABLE_SHADOWMAP_LEVELS
+uniform highp mat4 shadowmapMatrix[ENABLE_SHADOWMAP_LEVELS];
+out highp vec3 shadowCoord[ENABLE_SHADOWMAP_LEVELS];
+#endif
+
+#ifdef ENABLE_MAX_ANIMATION_BONES
+uniform int perVertexJointCount;
+uniform mat4 jointMatrices[ENABLE_MAX_ANIMATION_BONES];
+
+layout(location = 6) in mediump uvec4 jointIds;
+layout(location = 7) in mediump vec4 weights;
 mat4 getSkinMatrix() {
     mat4 skinMatrix = mat4(0.0);
     for(uint i = 0u; i != perVertexJointCount; ++i) {
@@ -39,7 +37,7 @@ void main() {
     vec4 position4 = vec4(position, 1.0);
 
     vec3 modelNormal = normal;
-    #ifdef MAX_JOINT_COUNT
+    #ifdef ENABLE_MAX_ANIMATION_BONES
     if (perVertexJointCount > 0) {
         mat4 skinMatrix = getSkinMatrix();
         position4 = skinMatrix * position4;
@@ -51,7 +49,6 @@ void main() {
     highp vec3 transformedPosition = transformedPosition4.xyz/transformedPosition4.w;
 
     vec4 worldPos4 = modelMatrix * position4;
-    worldPos = worldPos4.xyz;
 
     transformedNormal = normalMatrix*modelNormal;
 

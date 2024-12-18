@@ -17,6 +17,7 @@
 
 #include "GameAssets.h"
 #include "TexturedDrawable.h"
+#include "GameShader.h"
 
 namespace MagnumGame {
 
@@ -64,6 +65,7 @@ namespace MagnumGame {
 
             if (parentAsset.skinMesh.mesh != nullptr && parentAsset.skinMesh.material != nullptr) {
                 auto& drawable = parent.addFeature<TexturedDrawable>(parentAsset.skinMesh.material->texture, meshShader, *parentAsset.skinMesh.mesh, *meshDrawables);
+                arrayAppend(_meshDrawables, InPlaceInit, drawable);
 
                 if (parentAsset.skinMesh.skin != nullptr) {
                     auto skinBone = skinMap.find(parentAsset.skinMesh.skin);

@@ -42,8 +42,8 @@ namespace MagnumGame {
         if (_text.isEmpty()) return;
         _font.textShader
                 .setTransformationProjectionMatrix(projectionMatrix * _matrix)
-                .setColor(getTextColour())
-                .setOutlineColor(getOutlineColour())
+                .setColor(getTextColor())
+                .setOutlineColor(getOutlineColor())
                 .setOutlineRange(fontOutlineStart, fontOutlineEnd)
                 .setSmoothness(fontSmoothness)
                 .bindVectorTexture(_font.fontGlyphCache.texture())

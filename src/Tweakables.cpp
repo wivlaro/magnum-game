@@ -13,8 +13,8 @@ namespace MagnumGame {
         arrayAppend(_debugModes, InPlaceInit);
 
         arrayAppend(_debugModes, InPlaceInit, "Lights", 0, std::initializer_list<TweakableValue>{
-                        TweakableValue{"Ambient", &TexturedDrawable::ambientColour},
-                        TweakableValue{"Directional", &TexturedDrawable::lightColour},
+                        TweakableValue{"Ambient", &TexturedDrawable::ambientColor},
+                        TweakableValue{"Directional", &TexturedDrawable::lightColor},
                         TweakableValue{"Shininess", &TexturedDrawable::shininess},
                         TweakableValue{"Specular", &TexturedDrawable::specular},
                         TweakableValue{"Direction x", &TexturedDrawable::lightDirection.x()},

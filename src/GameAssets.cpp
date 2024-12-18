@@ -15,7 +15,9 @@
 #include <Magnum/Math/Color.h>
 #include <Corrade/Utility/Path.h>
 
+#include "GameShader.h"
 #include "MagnumGameApp.h"
+#include "ShadowCasterShader.h"
 
 namespace MagnumGame {
 
@@ -49,13 +51,23 @@ namespace MagnumGame {
         _fontsDir = *findDirectory("font");
         _shadersDir = *findDirectory("shaders");
 
+        const int maxAnimationBones = 16;
+
+        _shadowCasterShader.emplace(
+            Utility::Path::join(_shadersDir, "ShadowCaster.vert"),
+            Utility::Path::join(_shadersDir, "ShadowCaster.frag"), 0);
+
+        _animatedShadowCasterShader.emplace(
+            Utility::Path::join(_shadersDir, "ShadowCaster.vert"),
+            Utility::Path::join(_shadersDir, "ShadowCaster.frag"), maxAnimationBones);
+
         _texturedShader.emplace(
             Utility::Path::join(_shadersDir, "GameShader.vert"),
-            Utility::Path::join(_shadersDir, "GameShader.frag"));
+            Utility::Path::join(_shadersDir, "GameShader.frag"), 0);
 
         _animatedTexturedShader.emplace(
             Utility::Path::join(_shadersDir, "GameShader.vert"),
-            Utility::Path::join(_shadersDir, "GameShader.frag"));
+            Utility::Path::join(_shadersDir, "GameShader.frag"), maxAnimationBones);
         // _animatedTexturedShader.emplace(Shaders::PhongGL::Configuration{}
         //     .setJointCount(16, 4)
         //     .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId | Shaders::PhongGL::Flag::DynamicPerVertexJointCount));
@@ -69,10 +81,12 @@ namespace MagnumGame {
 
     }
 
+    GameAssets::~GameAssets() = default;
+
     void GameAssets::loadModel(Trade::AbstractImporter& gltfImporter,
-                                  Trade::SceneData &sceneData,
-                                  Containers::StringView objectName, GL::Mesh *outMesh, Matrix4x4 *outTransform,
-                                  std::shared_ptr<GL::Texture2D> *outTexture, btConvexHullShape *outConvexHullShape) {
+                               Trade::SceneData &sceneData,
+                               Containers::StringView objectName, GL::Mesh *outMesh, Matrix4x4 *outTransform,
+                               std::shared_ptr<GL::Texture2D> *outTexture, btConvexHullShape *outConvexHullShape) {
         auto objectId = gltfImporter.objectForName(objectName);
         for (auto &meshMat: sceneData.meshesMaterialsFor(objectId)) {
             auto meshId = meshMat.first();

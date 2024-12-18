@@ -9,7 +9,7 @@
 namespace MagnumGame {
     class CameraController {
     public:
-        explicit CameraController(Scene3D &camera);
+        explicit CameraController(Scene3D &camera, float near, float far);
 
         void setupTargetFromCurrent(Object3D &target);
 
@@ -19,7 +19,8 @@ namespace MagnumGame {
 
         Matrix4 getTransformationProjectionMatrix() const {
             return _camera.projectionMatrix() * _camera.cameraMatrix();
-        }
+        };
+        Matrix4 getCameraMatrix() const { return _camera.cameraMatrix(); }
 
         void draw(SceneGraph::DrawableGroup3D& drawableGroup) const { _camera.draw(drawableGroup); }
 

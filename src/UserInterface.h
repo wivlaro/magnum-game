@@ -18,9 +18,9 @@ namespace MagnumGame {
     using namespace Corrade;
     using namespace Magnum;
 
-    static inline Color4 textColour = 0xffffff_rgbf;
-    static inline Color4 selectedTextColour = 0xffccaa_rgbf;
-    static inline Color4 outlineColour = 0x111111_rgbf;
+    static inline Color4 textColor = 0xffffff_rgbf;
+    static inline Color4 selectedTextColor = 0xffccaa_rgbf;
+    static inline Color4 outlineColor = 0x111111_rgbf;
 
     static inline float fontSmoothness = 0.01f;
     static inline float fontOutlineStart = 0.45f;
@@ -69,9 +69,9 @@ namespace MagnumGame {
         explicit UIText(TextAsset &font, const Vector2 &position, float size, Text::Alignment alignment, Containers::StringView text = {});
         ~UIText() override = default;
 
-        virtual Color4 getTextColour() const { return textColour;}
+        virtual Color4 getTextColor() const { return textColor;}
 
-        virtual Color4 getOutlineColour() const { return outlineColour;}
+        virtual Color4 getOutlineColor() const { return outlineColor;}
 
 
         void draw(const Matrix3 &projectionMatrix) override;
@@ -92,7 +92,7 @@ namespace MagnumGame {
         ~UITextButton() override = default;
         bool isSelectable() override { return true; }
 
-        Color4 getTextColour() const override { return _isSelected ? selectedTextColour : textColour; }
+        Color4 getTextColor() const override { return _isSelected ? selectedTextColor : textColor; }
 
         void setSelected(bool selected) override { _isSelected = selected; }
 

@@ -50,10 +50,17 @@ Use glTF 2.0 exporter with .glb format for most optimal performance.
 
 ## TO DO
 
-* Shadow caster/receiver drawables
+* Shadows
+  * Shadow caster/receiver drawables
+  * Shadow light
+* Shader - Clearer Enable/disable for shadow/animation/vertex colour
+* Shader - Add vertex colour support
+* Shader - Enable/disable for texture
+* Desktop/Web - Add mouse capture within game
 * Add sky box
 * Try faster Freetype lib where available
 * Platform support - Mobile? 
+* Mobile - Add virtual joystick
 
 ## Credits
 

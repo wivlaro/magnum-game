@@ -46,6 +46,12 @@ add_executable(MagnumGameApp MagnumGameApp.cpp
         UserInterface.h
         GameShader.cpp
         GameShader.h
+        ShadowCasterDrawable.cpp
+        ShadowCasterDrawable.h
+        ShadowLight.cpp
+        ShadowLight.h
+        ShadowCasterShader.h
+        ShadowCasterShader.cpp
 )
 target_link_libraries(MagnumGameApp PRIVATE
         Corrade::Main

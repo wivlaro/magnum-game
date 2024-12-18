@@ -6,6 +6,10 @@
 #include "MagnumGameApp.h"
 
 namespace MagnumGame {
+    class ShadowLight;
+}
+
+namespace MagnumGame {
     class Player;
 
     inline static ResourceKey DebugRendererGroup = "DebugRendererGroup";
@@ -13,6 +17,7 @@ namespace MagnumGame {
     class GameState {
     public:
         explicit GameState(const Timeline& timeline, GameAssets& assets);
+        ~GameState();
 
         void start();
         void update();
@@ -34,6 +39,8 @@ namespace MagnumGame {
         void drawTransparent();
 
         CameraController* getCamera() { return _cameraController.get(); }
+
+        void drawShadowBuffer();
 
     private:
         const Timeline& _timeline;
@@ -62,10 +69,14 @@ namespace MagnumGame {
         SceneGraph::DrawableGroup3D _opaqueDrawables{};
         SceneGraph::DrawableGroup3D _transparentDrawables{};
 
+        SceneGraph::DrawableGroup3D _shadowCasterDrawables{};
+
         Scene3D _scene{};
         Containers::Pointer<CameraController> _cameraController;
 
         Containers::Pointer<Player> _player;
+
+        Containers::Pointer<ShadowLight> _shadowLight;
 
         bool _isStarted = false;
 
