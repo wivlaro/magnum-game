@@ -6,12 +6,14 @@ uniform mat4 modelMatrix;
 
 layout(location = 0) in highp vec3 position;
 layout(location = 1) in mediump vec2 textureCoordinates;
-layout(location = 2) in highp vec3 normal;
+layout(location = 5) in highp vec3 normal;
 
 out mediump vec2 interpolatedTextureCoords;
 out mediump vec3 transformedNormal;
 out highp vec3 lightDirection;
 out highp vec3 cameraDirection;
+
+//out highp vec3 normalRaw;
 
 #ifdef ENABLE_SHADOWMAP_LEVELS
 uniform highp mat4 shadowmapMatrix[ENABLE_SHADOWMAP_LEVELS];
@@ -54,13 +56,14 @@ void main() {
 
     cameraDirection = -transformedPosition;
 
+    #ifdef ENABLE_SHADOWMAP_LEVELS
     for (int i = 0; i < shadowmapMatrix.length(); i++) {
-        //        float castReceiveOffsetBias = 0.10 + i * 0.001;
-        //        shadowCoord[i] = (shadowmapMatrix[i] * (worldPos4 + vec4(transformedNormal * castReceiveOffsetBias,0))).xyz;
         shadowCoord[i] = (shadowmapMatrix[i] * worldPos4).xyz;
     }
+    #endif
 
     gl_Position = projectionMatrix*transformedPosition4;
 
     interpolatedTextureCoords = textureCoordinates;
+//    normalRaw = normal;
 }

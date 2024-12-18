@@ -13,7 +13,7 @@ namespace MagnumGame {
 class ShadowLight : public Object3D
 {
 public:
-	ShadowLight(Object3D& parent, int numShadowLevels, Float near, Float far);
+	ShadowLight(Object3D& parent, Range1D zPlanes, int numShadowLevels, Vector2i shadowMapSize);
 	~ShadowLight() override;
 
 	void setTarget(Vector3 lightDirection, Vector3 screenDirection, const Matrix4& inverseModelViewProjection);

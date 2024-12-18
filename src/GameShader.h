@@ -24,11 +24,12 @@ public:
 	typedef Shaders::GenericGL3D::JointIds JointIds;
 	typedef Shaders::GenericGL3D::Weights Weights;
 
-    explicit GameShader(const std::string& vertFilename, const std::string& fragFilename, int maxAnimationBones);
+    explicit GameShader(const std::string& vertFilename, const std::string& fragFilename, int maxAnimationBones, int shadowMapLevels, bool shadowPcf);
 
 	~GameShader() override = default;
 
 	void addDefine(const std::string& name, const std::string& value);
+
 
 	enum: Int {
 		DiffuseTextureLayer = 0,
@@ -77,6 +78,7 @@ public:
 		setUniform(lightVectorUniform, f);
 		return *this;
 	}
+	auto& setShininess(float shininess) { setUniform(shininessUniform, shininess); return *this; }
 
 	GameShader& setLightColor(const Vector3& f) {
 		setUniform(lightColorUniform, f);

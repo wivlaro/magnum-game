@@ -9,7 +9,7 @@
 namespace MagnumGame {
     class CameraController {
     public:
-        explicit CameraController(Scene3D &camera, float near, float far);
+        explicit CameraController(Scene3D &camera, Range1D zPlanes);
 
         void setupTargetFromCurrent(Object3D &target);
 

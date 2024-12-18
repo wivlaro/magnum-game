@@ -17,13 +17,14 @@
 
 
 namespace MagnumGame {
-    TexturedDrawable::TexturedDrawable(SceneGraph::AbstractObject3D &object,
+    TexturedDrawable::TexturedDrawable(Object3D &object,
                                        const Trade::ImageData2D &image,
                                        Shaders::PhongGL &shader,
                                        GL::Mesh &mesh,
                                        SceneGraph::DrawableGroup3D &drawables,
                                        UnsignedInt objectId)
         : SceneGraph::Drawable3D(object, &drawables),
+            _object(object),
           _color{0xffffffff_rgbaf},
           _ownTexture{makeTexture(image)},
           _texture(&*_ownTexture),
@@ -33,13 +34,14 @@ namespace MagnumGame {
           _objectId{objectId} {
     }
 
-    TexturedDrawable::TexturedDrawable(SceneGraph::AbstractObject3D &object,
+    TexturedDrawable::TexturedDrawable(Object3D &object,
                                        GL::Texture2D *texture,
                                        Shaders::PhongGL &shader,
                                        GL::Mesh &mesh,
                                        SceneGraph::DrawableGroup3D &drawables,
                                        UnsignedInt objectId)
         : SceneGraph::Drawable3D{object, &drawables},
+            _object(object),
           _color{0xffffffff_rgbaf},
           _ownTexture{Containers::NullOpt},
           _texture(texture),
@@ -52,13 +54,14 @@ namespace MagnumGame {
         }
     }
 
-    TexturedDrawable::TexturedDrawable(SceneGraph::AbstractObject3D &object,
+    TexturedDrawable::TexturedDrawable(Object3D &object,
                                        GL::Texture2D *texture,
                                        GameShader &shader,
                                        GL::Mesh &mesh,
                                        SceneGraph::DrawableGroup3D &drawables,
                                        UnsignedInt objectId)
         : SceneGraph::Drawable3D{object, &drawables},
+            _object(object),
           _color{0xffffffff_rgbaf},
           _ownTexture{Containers::NullOpt},
           _texture(texture),
@@ -126,6 +129,7 @@ namespace MagnumGame {
             _shader.setSpecularColor(_color.rgb());
             _shader.setModelMatrix(object().absoluteTransformationMatrix());
             _shader.setLightVector(lightDirection);
+            _shader.setShininess(shininess);
             _shader.setLightColor({lightColor, lightColor, lightColor});
             _shader.setAmbientColor({ambientColor, ambientColor, ambientColor});
             if (_texture) {

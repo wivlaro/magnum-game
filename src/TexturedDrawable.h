@@ -26,19 +26,19 @@ namespace MagnumGame {
     class TexturedDrawable : public SceneGraph::Drawable3D, public IEnableDrawable {
 
     public:
-        explicit TexturedDrawable(SceneGraph::AbstractObject3D &object,
+        explicit TexturedDrawable(Object3D &object,
                                   const Trade::ImageData2D &image,
                                   Shaders::PhongGL &shader,
                                   GL::Mesh& mesh,
                                   SceneGraph::DrawableGroup3D &drawables,
                                   UnsignedInt objectId = 0);
-        explicit TexturedDrawable(SceneGraph::AbstractObject3D &object,
+        explicit TexturedDrawable(Object3D &object,
                                   GL::Texture2D* texture,
                                   Shaders::PhongGL &shader,
                                   GL::Mesh& mesh,
                                   SceneGraph::DrawableGroup3D &drawables,
                                   UnsignedInt objectId = 0);
-        explicit TexturedDrawable(SceneGraph::AbstractObject3D &object,
+        explicit TexturedDrawable(Object3D &object,
                                   GL::Texture2D* texture,
                                   GameShader &shader,
                                   GL::Mesh& mesh,
@@ -51,6 +51,8 @@ namespace MagnumGame {
 
         btVector3 getPosition() const override;
 
+        Object3D& getObject3D() const { return _object; }
+
         void setSkin(Skin& skin, UnsignedInt perVertexJointCount, UnsignedInt secondaryPerVertexJointCount);
 
         GL::Mesh& getMesh() const { return _mesh;}
@@ -59,14 +61,15 @@ namespace MagnumGame {
 
         static inline float ambientColor = 0.5f;
         static inline float lightColor = 0.5f;
-        static inline float shininess = 20.0f;
-        static inline float specular = 0.3f;
-        static inline Vector3 lightDirection = {0.4f, 0.5f, 0.3f};
+        static inline float shininess = 10.0f;
+        static inline float specular = 1.0f;
+        static inline Vector3 lightDirection = {0.2f, 0.7f, 0.3f};
 
     private:
         void draw(const Matrix4 &transformation, SceneGraph::Camera3D &) override;
         static GL::Texture2D makeTexture(const Trade::ImageData2D &);
 
+        Object3D& _object;
         Color4 _color;
         Containers::Optional<GL::Texture2D> _ownTexture;
         GL::Texture2D* _texture{};

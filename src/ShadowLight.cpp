@@ -23,12 +23,12 @@ namespace MagnumGame {
 
 	using namespace Magnum::GL;
 
-ShadowLight::ShadowLight(Object3D& parent, int numShadowLevels, Float zNear, Float zFar)
+ShadowLight::ShadowLight(Object3D& parent, Range1D zPlanes, int numShadowLevels, Vector2i shadowMapSize)
 :	Object3D(&parent)
 	, _numLayers(numShadowLevels)
 ,	_camera(addFeature<SceneGraph::Camera3D>())
 {
-	Range2Di viewport = {{0, 0}, {1024, 1024}};
+	Range2Di viewport = {{0, 0}, shadowMapSize};
 	_shadowTexture.emplace();
 	_shadowTexture->setLabel("Shadow texture");
 	//	shadowTexture.setStorage(1, Magnum::TextureFormat::DepthComponent, shadowFramebuffer.viewport().size());
@@ -52,6 +52,8 @@ ShadowLight::ShadowLight(Object3D& parent, int numShadowLevels, Float zNear, Flo
 		Debug() << "Framebuffer status: read=" << shadowFramebuffer.checkStatus(FramebufferTarget::Read) << " draw=" << shadowFramebuffer.checkStatus(FramebufferTarget::Draw);
 	}
 
+	auto zNear = zPlanes.min();
+	auto zFar = zPlanes.max();
 	_cutPlanes = {};
 	arrayReserve(_cutPlanes, _numLayers);
 	//props http://stackoverflow.com/a/33465663

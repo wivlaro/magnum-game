@@ -16,6 +16,11 @@ namespace MagnumGame {
 
     class GameAssets {
 public:
+        static constexpr int ShadowMapLevels = 2;
+        static constexpr bool ShadowPercentageCloserFiltering = true;
+        static constexpr int MaxAnimationBones = 16;
+        static constexpr Vector2i ShadowMapResolution = {1024, 1024};
+
         explicit GameAssets(Trade::AbstractImporter& );
         ~GameAssets();
 
@@ -56,8 +61,8 @@ public:
 
 
         void loadModel(Trade::AbstractImporter &gltfImporter, Trade::SceneData &sceneData,
-                              Containers::StringView objectName, GL::Mesh *outMesh, Matrix4x4 *outTransform,
-                              std::shared_ptr<GL::Texture2D> *outTexture, btConvexHullShape *outConvexHullShape);
+                       Containers::StringView objectName, GL::Mesh *outMesh, Matrix4x4 *outTransform,
+                       std::shared_ptr<GL::Texture2D> *outTexture, btConvexHullShape *outConvexHullShape);
     };
 }
 

@@ -33,12 +33,12 @@ namespace MagnumGame {
         _debugDraw.setMode(BulletIntegration::DebugDraw::Mode::DrawWireframe);
         _bWorld.setDebugDrawer(&_debugDraw);
 
-        Float near = 0.1f, far = 128.0f;
-        _cameraController.emplace(_scene, near, far);
+        Range1D zPlanes{0.1f, 128.0f};
+        _cameraController.emplace(_scene, zPlanes);
 
         _debugResourceManager.set(DebugRendererGroup, DebugTools::ObjectRendererOptions{}.setSize(1.f));
 
-        _shadowLight.emplace(_scene, 4, near, far);
+        _shadowLight.emplace(_scene, zPlanes, GameAssets::ShadowMapLevels, GameAssets::ShadowMapResolution);
 
     }
 
@@ -234,10 +234,9 @@ namespace MagnumGame {
                                                                    &_animatorDrawables, &_opaqueDrawables);
 
         for (auto& meshDrawable : animator->meshDrawables()) {
-            auto& skinMeshObject3D = dynamic_cast<Object3D &>(meshDrawable.get().object());
-            skinMeshObject3D.addFeature<ShadowCasterDrawable>(_assets.getAnimatedShadowCasterShader(), _shadowCasterDrawables)
-                .setMesh(&meshDrawable.get().getMesh())
-                .setSkinMeshDrawable(meshDrawable.get().getSkinMeshDrawable());
+            meshDrawable->getObject3D().addFeature<ShadowCasterDrawable>(_assets.getAnimatedShadowCasterShader(), _shadowCasterDrawables)
+                    .setMesh(&meshDrawable.get().getMesh())
+                    .setSkinMeshDrawable(meshDrawable.get().getSkinMeshDrawable());
         }
 
         animationOffset.setTransformation(Matrix4::translation({0, -0.4f, 0}));

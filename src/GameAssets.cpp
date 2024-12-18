@@ -51,29 +51,22 @@ namespace MagnumGame {
         _fontsDir = *findDirectory("font");
         _shadersDir = *findDirectory("shaders");
 
-        const int maxAnimationBones = 16;
-
         _shadowCasterShader.emplace(
             Utility::Path::join(_shadersDir, "ShadowCaster.vert"),
             Utility::Path::join(_shadersDir, "ShadowCaster.frag"), 0);
 
         _animatedShadowCasterShader.emplace(
             Utility::Path::join(_shadersDir, "ShadowCaster.vert"),
-            Utility::Path::join(_shadersDir, "ShadowCaster.frag"), maxAnimationBones);
+            Utility::Path::join(_shadersDir, "ShadowCaster.frag"), MaxAnimationBones);
 
         _texturedShader.emplace(
             Utility::Path::join(_shadersDir, "GameShader.vert"),
-            Utility::Path::join(_shadersDir, "GameShader.frag"), 0);
+            Utility::Path::join(_shadersDir, "GameShader.frag"), 0, ShadowMapLevels, ShadowPercentageCloserFiltering);
 
         _animatedTexturedShader.emplace(
             Utility::Path::join(_shadersDir, "GameShader.vert"),
-            Utility::Path::join(_shadersDir, "GameShader.frag"), maxAnimationBones);
-        // _animatedTexturedShader.emplace(Shaders::PhongGL::Configuration{}
-        //     .setJointCount(16, 4)
-        //     .setFlags(Shaders::PhongGL::Flag::DiffuseTexture | Shaders::PhongGL::Flag::ObjectId | Shaders::PhongGL::Flag::DynamicPerVertexJointCount));
+            Utility::Path::join(_shadersDir, "GameShader.frag"), MaxAnimationBones, ShadowMapLevels, ShadowPercentageCloserFiltering);
         _animatedTexturedShader->setAmbientColor(0x111111_rgbf);
-                // .setSpecularColor(0x33000000_rgbaf)
-                // .setLightPositions({{10.0f, 15.0f, 5.0f, 0.0f}});
 
         _vertexColorShader.emplace();
 

@@ -18,12 +18,17 @@ namespace MagnumGame {
 
 	using namespace Magnum::GL;
 
-GameShader::GameShader(const std::string& vertFilename, const std::string& fragFilename, int maxAnimationBones)
+GameShader::GameShader(const std::string& vertFilename, const std::string& fragFilename, int maxAnimationBones, int shadowMapLevels, bool shadowPcf)
 {
 	CHECK_GL_ERROR();
-	addDefine("ENABLE_SHADOWMAP_LEVELS","4");
+	if (shadowMapLevels > 0) {
+		addDefine("ENABLE_SHADOWMAP_LEVELS",std::to_string(shadowMapLevels));
+	}
 	if (maxAnimationBones > 0) {
 		addDefine("ENABLE_MAX_ANIMATION_BONES",std::to_string(maxAnimationBones));
+	}
+	if (shadowPcf) {
+		addDefine("SHADOWMAP_PCF", "1");
 	}
 
 	CHECK_GL_ERROR();
@@ -102,6 +107,7 @@ GameShader::GameShader(const std::string& vertFilename, const std::string& fragF
 	debug << "\n\tbound: shadowmapTexture = " << uniformLocation("shadowmapTexture") ;
 	debug << "\n\tbound: diffuseTexture = " << uniformLocation("diffuseTexture") ;
 	debug << "\n\tbound: lightmapTexture = " << uniformLocation("lightmapTexture") ;
+	debug << "\n\tshininess = " << shininessUniform ;
 }
 
 void GameShader::addDefine(const std::string &name, const std::string &value) {
