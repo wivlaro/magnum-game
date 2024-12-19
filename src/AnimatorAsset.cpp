@@ -97,12 +97,7 @@ namespace MagnumGame {
             for (auto attrId = 0U; attrId < meshData->attributeCount(); attrId++) {
                 auto attrName = meshData->attributeName(attrId);
 
-                Debug{} << "\tAttribute" << attrId << ":" << attrName
-                << "format=" << meshData->attributeFormat(attrId)
-                << " offset=" << meshData->attributeOffset(attrId)
-                << " stride=" << meshData->attributeStride(attrId)
-                << " arraySize=" << meshData->attributeArraySize(attrId)
-                << " morphTargetId=" << meshData->attributeMorphTargetId(attrId);
+                // Debug{} << "\tAttribute" << attrId << ":" << attrName << "format=" << meshData->attributeFormat(attrId) << " offset=" << meshData->attributeOffset(attrId) << " stride=" << meshData->attributeStride(attrId) << " arraySize=" << meshData->attributeArraySize(attrId) << " morphTargetId=" << meshData->attributeMorphTargetId(attrId);
             }
 
             [[maybe_unused]]
@@ -160,9 +155,11 @@ namespace MagnumGame {
         processMeshes(-1, _rootSkinMeshNode, 0);
 
         if (importer.animationCount() > 0) {
+            Debug debug{};
+            debug << "Animations:" << importer.animationCount();
             for (UnsignedInt animationIndex = 0; animationIndex != importer.animationCount(); ++animationIndex) {
                 auto animationName = importer.animationName(animationIndex);
-                Debug{} << "Animation" << animationIndex << animationName;
+                debug << animationName;
                 auto animationData = importer.animation(animationIndex);
                 _animations.insert(std::pair{animationName, std::move(*animationData)});
             }

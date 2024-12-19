@@ -91,7 +91,7 @@ public:
 	}
 
 
-	GameShader& setPerVertexJointCount(int jointCount) {
+	GameShader& setPerVertexJointCount(UnsignedInt jointCount) {
 		setUniform(perVertexJointCountUniform, jointCount);
 		return *this;
 	}

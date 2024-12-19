@@ -98,16 +98,15 @@ GameShader::GameShader(const std::string& vertFilename, const std::string& fragF
 	setUniform(uniformLocation("diffuseTexture"), DiffuseTextureLayer);
 	setUniform(uniformLocation("shadowmapTexture"), ShadowmapTextureLayer);
 
-	Debug debug{};
-	debug << "\nSHADER " << vertFilename << " & " << fragFilename << "\nAttribute locations:\n\tposition=" << Position::Location << "\n\tnormal=" << Normal::Location << "\n\ttexcoords=" << TextureCoordinates::Location ;
-	debug << "\n\tbound: position = " << glGetAttribLocation(id(), "position") ;
-	debug << "\n\tbound: textureCoords = " << glGetAttribLocation(id(), "textureCoordinates") ;
-	debug << "\n\tbound: normal = " << glGetAttribLocation(id(), "normal") ;
-	debug << "\n\tbound: particlePosition = " << glGetAttribLocation(id(), "particlePosition") ;
-	debug << "\n\tbound: shadowmapTexture = " << uniformLocation("shadowmapTexture") ;
-	debug << "\n\tbound: diffuseTexture = " << uniformLocation("diffuseTexture") ;
-	debug << "\n\tbound: lightmapTexture = " << uniformLocation("lightmapTexture") ;
-	debug << "\n\tshininess = " << shininessUniform ;
+	Debug{} << "\nSHADER " << vertFilename << " & " << fragFilename << "Attributes:"
+			<< "position=" << Position::Location << glGetAttribLocation(id(), "position")
+			<< "normal=" << Normal::Location << glGetAttribLocation(id(), "normal")
+			<< "texcoords=" << TextureCoordinates::Location << glGetAttribLocation(id(), "textureCoordinates")
+			<< "Uniforms:"
+			<< "shadowmapTexture=" << uniformLocation("shadowmapTexture")
+			<< "diffuseTexture=" << uniformLocation("diffuseTexture")
+			<< "lightmapTexture=" << uniformLocation("lightmapTexture")
+			<< "shininess=" << shininessUniform ;
 }
 
 void GameShader::addDefine(const std::string &name, const std::string &value) {

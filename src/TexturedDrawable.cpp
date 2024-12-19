@@ -147,6 +147,7 @@ namespace MagnumGame {
 
             _shader.draw(_mesh);
         }
+        CHECK_GL_ERROR();
     }
 
     void TexturedDrawable::setEnabled(bool b) {

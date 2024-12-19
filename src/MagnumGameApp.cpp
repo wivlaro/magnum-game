@@ -16,7 +16,6 @@
 #include <Magnum/MeshTools/Compile.h>
 #include <Magnum/MeshTools/Transform.h>
 #include <Magnum/SceneGraph/Camera.h>
-#include <Magnum/Shaders/PhongGL.h>
 #include <Magnum/Trade/AbstractImporter.h>
 #include <Magnum/Trade/TextureData.h>
 #include <Magnum/Text/AbstractFont.h>
@@ -77,8 +76,8 @@ namespace MagnumGame {
         _framebuffer.attachRenderbuffer(GL::Framebuffer::ColorAttachment{0}, _color)
                    .attachRenderbuffer(GL::Framebuffer::ColorAttachment{1}, _objectId)
                    .attachRenderbuffer(GL::Framebuffer::BufferAttachment::Depth, _depth)
-                   .mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
-                                {Shaders::PhongGL::ObjectIdOutput, GL::Framebuffer::ColorAttachment{1}}});
+                   .mapForDraw({{Shaders::GenericGL3D::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
+                                {Shaders::GenericGL3D::ObjectIdOutput, GL::Framebuffer::ColorAttachment{1}}});
 
         CHECK_GL_ERROR();
 
@@ -157,15 +156,16 @@ namespace MagnumGame {
         _gameState->drawShadowBuffer();
 
         //Object picking support
-        _framebuffer.mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
-                                {Shaders::PhongGL::ObjectIdOutput, GL::Framebuffer::ColorAttachment{1}}});
+        _framebuffer.mapForDraw({{Shaders::GenericGL3D::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
+                                {Shaders::GenericGL3D::ObjectIdOutput, GL::Framebuffer::ColorAttachment{1}}});
+        // _framebuffer.mapForDraw({{Shaders::GenericGL3D::ColorOutput, GL::Framebuffer::ColorAttachment{0}}});
         GL::Renderer::enable(GL::Renderer::Feature::Blending);
         GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha, GL::Renderer::BlendFunction::OneMinusSourceAlpha);
 
         _gameState->drawOpaque();
 
-        _framebuffer.mapForDraw({{Shaders::PhongGL::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
-                                {Shaders::PhongGL::ObjectIdOutput,  GL::Framebuffer::DrawAttachment::None}});
+        _framebuffer.mapForDraw({{Shaders::GenericGL3D::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
+                                {Shaders::GenericGL3D::ObjectIdOutput,  GL::Framebuffer::DrawAttachment::None}});
 
         _gameState->drawTransparent();
 

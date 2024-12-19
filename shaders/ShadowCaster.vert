@@ -2,7 +2,7 @@ uniform highp mat4 transformationMatrix;
 in highp vec4 position;
 
 #ifdef ENABLE_MAX_ANIMATION_BONES
-uniform int perVertexJointCount;
+uniform uint perVertexJointCount;
 uniform mat4 jointMatrices[ENABLE_MAX_ANIMATION_BONES];
 
 layout(location = 6) in mediump uvec4 jointIds;
@@ -21,7 +21,7 @@ void main()
 	vec4 modelPosition = position;
 
 	#ifdef ENABLE_MAX_ANIMATION_BONES
-    if (perVertexJointCount > 0) {
+    if (perVertexJointCount > 0u) {
 		modelPosition = getSkinMatrix() * modelPosition;
 	}
 	#endif

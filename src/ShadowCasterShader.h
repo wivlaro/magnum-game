@@ -20,7 +20,7 @@ public:
         return *this;
     }
 
-    auto& setPerVertexJointCount(int jointCount) {
+    auto& setPerVertexJointCount(UnsignedInt jointCount) {
         setUniform(perVertexJointCountUniform, jointCount);
         return *this;
     }

@@ -99,7 +99,7 @@ namespace MagnumGame {
     Animator::Animation::Animation(const Containers::StringView& animationName, const AnimatorAsset &asset, std::map<int, BoneObject *>& boneMap) {
         auto& animationData = asset._animations.at(animationName);
 
-        Debug{} << "Instancing anim" << animationName;
+        // Debug{} << "Instancing anim" << animationName;
         for (UnsignedInt trackIndex = 0; trackIndex != animationData.trackCount(); ++trackIndex) {
 
             auto animatedObjectId = animationData.trackTarget(trackIndex);

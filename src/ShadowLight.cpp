@@ -33,9 +33,14 @@ ShadowLight::ShadowLight(Object3D& parent, Range1D zPlanes, int numShadowLevels,
 #ifndef MAGNUM_TARGET_WEBGL
 	_shadowTexture->setLabel("Shadow texture");
 #endif
-	//	shadowTexture.setStorage(1, Magnum::TextureFormat::DepthComponent, shadowFramebuffer.viewport().size());
-	_shadowTexture->setImage(0, TextureFormat::DepthComponent, ImageView3D(GL::PixelFormat::DepthComponent, PixelType::Float, {viewport.size(), static_cast<int>(_numLayers)}, nullptr));
+
+	_shadowTexture->setStorage(1, TextureFormat::DepthComponent16, {viewport.size(), static_cast<int>(_numLayers)});
+	CHECK_GL_ERROR();
+	// _shadowTexture->setImage(0, TextureFormat::DepthComponent,
+	// 	ImageView3D(GL::PixelFormat::DepthComponent, PixelType::Float,
+	// 		{viewport.size(), static_cast<int>(_numLayers)}));
 	_shadowTexture->setMaxLevel(0);
+	CHECK_GL_ERROR();
 
 	_shadowTexture->setCompareFunction(SamplerCompareFunction::LessOrEqual);
 	_shadowTexture->setCompareMode(SamplerCompareMode::CompareRefToTexture);
@@ -51,9 +56,13 @@ ShadowLight::ShadowLight(Object3D& parent, Range1D zPlanes, int numShadowLevels,
 		shadowFramebuffer.setLabel("Shadow framebuffer " + std::to_string(i));
 #endif
 		shadowFramebuffer.bind();
+		CHECK_GL_ERROR();
 		shadowFramebuffer.attachTextureLayer(Framebuffer::BufferAttachment::Depth, *_shadowTexture, 0, i);
+		CHECK_GL_ERROR();
 		shadowFramebuffer.mapForDraw(Framebuffer::DrawAttachment::None);
-		Debug() << "Framebuffer status: read=" << shadowFramebuffer.checkStatus(FramebufferTarget::Read) << " draw=" << shadowFramebuffer.checkStatus(FramebufferTarget::Draw);
+		CHECK_GL_ERROR();
+		Debug() << "Shadow light layer"<<i<<"framebuffer status: read=" << shadowFramebuffer.checkStatus(FramebufferTarget::Read) << " draw=" << shadowFramebuffer.checkStatus(FramebufferTarget::Draw);
+		CHECK_GL_ERROR();
 	}
 
 	auto zNear = zPlanes.min();
@@ -190,15 +199,19 @@ void ShadowLight::render(SceneGraph::DrawableGroup3D& drawables)
 		auto shadowCameraProjectionMatrix = Matrix4::orthographicProjection(d.orthographicSize, orthographicNear, orthographicFar);
 		d.shadowMatrix = bias * shadowCameraProjectionMatrix * _camera.cameraMatrix();
 		_camera.setProjectionMatrix(shadowCameraProjectionMatrix);
+		CHECK_GL_ERROR();
 
 		d.shadowFramebuffer.clear(FramebufferClear::Depth);
+		CHECK_GL_ERROR();
 		d.shadowFramebuffer.bind();
+		CHECK_GL_ERROR();
 		for(auto i = 0U; i != transformationsOutIndex; ++i) {
 			filteredDrawables[i]->draw(transformations[i], _camera);
 		}
 	}
 
 	defaultFramebuffer.bind();
+	CHECK_GL_ERROR();
 
 	objects.clear();
 	filteredDrawables = {};

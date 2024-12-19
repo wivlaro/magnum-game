@@ -200,6 +200,10 @@ namespace MagnumGame {
         }
 
         _shadowLight->render(_shadowCasterDrawables);
+        CHECK_GL_ERROR();
+
+        GL::Renderer::flush();
+        CHECK_GL_ERROR();
 
         Containers::Array<Matrix4> shadowMatrices(NoInit, _shadowLight->getNumLayers());
         for (auto layerIndex = 0u; layerIndex < _shadowLight->getNumLayers(); layerIndex++) {
@@ -207,11 +211,15 @@ namespace MagnumGame {
         }
         auto setupShaderForShadows = [&](GameShader* shader) {
             shader->setShadowmapTexture(_shadowLight->getShadowmapTextureArray());
+            CHECK_GL_ERROR();
             shader->setShadowmapMatrices(shadowMatrices);
+            CHECK_GL_ERROR();
             auto& shadowCutPlanes = _shadowLight->getCutPlanes();
             shader->setShadowCutPlanes({shadowCutPlanes.data(), shadowCutPlanes.size()});
+            CHECK_GL_ERROR();
             shader->setLightVector(_cameraController->getCameraMatrix().rotationScaling() * _shadowLight->transformation()[2].xyz());
             //				shader->setShadowmapMatrix(shadowLight->camera().projectionMatrix() * shadowLight->camera().cameraMatrix());
+            CHECK_GL_ERROR();
         };
         setupShaderForShadows(&_assets.getTexturedShader());
         setupShaderForShadows(&_assets.getAnimatedTexturedShader());
@@ -219,11 +227,13 @@ namespace MagnumGame {
 
     void GameState::drawOpaque() {
         _cameraController->draw(_opaqueDrawables);
+        CHECK_GL_ERROR();
     }
 
     void GameState::drawTransparent() {
         //Might want to sort the drawables along the camera Z axis
         _cameraController->draw(_transparentDrawables);
+        CHECK_GL_ERROR();
     }
 
     void GameState::setupPlayer() {

@@ -1,12 +1,12 @@
 uniform highp vec3 light;
-uniform vec3 ambientColor = vec3(0.25, 0.25, 0.25);
-uniform vec3 lightColor = vec3(1.0, 1.0, 1.0);
-uniform float shininess = 80.0;
+uniform mediump vec3 ambientColor;
+uniform mediump vec3 lightColor;
+uniform mediump float shininess;
 
-uniform sampler2D lightmapTexture;
-uniform sampler2DArrayShadow shadowmapTexture;
-uniform sampler2D diffuseTexture;
-uniform vec3 specularColor = vec3(1.0, 1.0, 1.0);
+uniform highp sampler2D lightmapTexture;
+uniform highp sampler2DArrayShadow shadowmapTexture;
+uniform highp sampler2D diffuseTexture;
+uniform mediump vec3 specularColor;
 
 in mediump vec3 transformedNormal;
 in highp vec3 cameraDirection;
@@ -15,32 +15,32 @@ in mediump vec2 interpolatedTextureCoords;
 
 #ifdef ENABLE_SHADOWMAP_LEVELS
 in highp vec3 shadowCoord[ENABLE_SHADOWMAP_LEVELS];
-uniform float shadowDepthSplits[ENABLE_SHADOWMAP_LEVELS];
+uniform highp float shadowDepthSplits[ENABLE_SHADOWMAP_LEVELS];
 #endif
 
-out lowp vec4 color;
+in highp vec3 worldPos;
+uniform highp mat4 modelMatrix;
 
-in vec3 worldPos;
-
-uniform mat4 modelMatrix;
+layout(location = 0) out lowp vec4 color;
+layout(location = 1) out highp uint fragmentObjectId;
 
 
 #ifdef ENABLE_SHADOWMAP_LEVELS
-float computeShadowAtLevel(vec3 levelShadowCoord, int shadowLevel, vec3 normal, vec3 lightDir) {
-    float baseBias = 0.0010 + shadowLevel * 0.001;
-    float slopeScaledBias = baseBias * max(1.0 - dot(normal, lightDir), 0.0); // Slope-scaled bias
-    float dZdx = dFdx(levelShadowCoord.z);
-    float dZdy = dFdy(levelShadowCoord.z);
-    float depthOffset = max(abs(dZdx), abs(dZdy)) * baseBias;
+highp float computeShadowAtLevel(mediump vec3 levelShadowCoord, int shadowLevel, mediump vec3 normal, mediump vec3 lightDir) {
+    highp float baseBias = 0.0010 + float(shadowLevel) * 0.001;
+    highp float slopeScaledBias = baseBias * max(1.0 - dot(normal, lightDir), 0.0); // Slope-scaled bias
+    highp float dZdx = dFdx(levelShadowCoord.z);
+    highp float dZdy = dFdy(levelShadowCoord.z);
+    highp float depthOffset = max(abs(dZdx), abs(dZdy)) * baseBias;
 
-    float bias = depthOffset + slopeScaledBias;
+    highp float bias = depthOffset + slopeScaledBias;
 
     #ifdef SHADOWMAP_PCF
-    vec2 texelSize = vec2(1.0) / textureSize(shadowmapTexture, 0).xy;
-    float shadow = 0.0;
+    mediump vec2 texelSize = vec2(1.0) / vec2(textureSize(shadowmapTexture, 0).xy);
+    highp float shadow = 0.0;
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
-            vec2 offset = vec2(x, y) * texelSize;
+            mediump vec2 offset = vec2(x, y) * texelSize;
             shadow += texture(shadowmapTexture, vec4(levelShadowCoord.xy + offset, shadowLevel, clamp(levelShadowCoord.z - bias, 0.0, 1.0)));
         }
     }
@@ -50,12 +50,12 @@ float computeShadowAtLevel(vec3 levelShadowCoord, int shadowLevel, vec3 normal, 
     return texture(shadowmapTexture, vec4(levelShadowCoord.xy, shadowLevel, levelShadowCoord.z - bias));
     #endif
 }
-float computeShadow(vec3 normalizedTransformedNormal) {
+mediump float computeShadow(mediump vec3 normalizedTransformedNormal) {
     lowp float intensity = dot(normalizedTransformedNormal, light);
-    if (intensity > 0) {
+    if (intensity > 0.0) {
         for (int shadowLevel = 0; shadowLevel < ENABLE_SHADOWMAP_LEVELS; shadowLevel++) {
-            vec3 levelShadowCoord = shadowCoord[shadowLevel];
-            bool inRange = levelShadowCoord.x > 0 && levelShadowCoord.y > 0 && levelShadowCoord.x < 1 && levelShadowCoord.y < 1 && levelShadowCoord.z > 0 && levelShadowCoord.z < 1;
+            mediump vec3 levelShadowCoord = shadowCoord[shadowLevel];
+            bool inRange = levelShadowCoord.x > 0.0 && levelShadowCoord.y > 0.0 && levelShadowCoord.x < 1.0 && levelShadowCoord.y < 1.0 && levelShadowCoord.z > 0.0 && levelShadowCoord.z < 1.0;
             if (inRange) {
                 return computeShadowAtLevel(levelShadowCoord, shadowLevel, normalizedTransformedNormal, light);
             }
@@ -68,26 +68,27 @@ float computeShadow(vec3 normalizedTransformedNormal) {
 void main() {
     lowp vec3 diffuseColor = texture(diffuseTexture, interpolatedTextureCoords).xyz;
 
-    vec3 ambient = ambientColor;
+    mediump vec3 ambient = ambientColor;
 
     mediump vec3 normalizedTransformedNormal = normalize(transformedNormal);
 
     //     color.rgb = ambient * diffuseColor * lightColor * intensity;
     ambient *= diffuseColor.rgb;
 
-    vec3 diffuse = max(dot(normalizedTransformedNormal, normalize(light)), 0.0) * diffuseColor.rgb * lightColor;
+    mediump vec3 diffuse = max(dot(normalizedTransformedNormal, normalize(light)), 0.0) * diffuseColor.rgb * lightColor;
 
-    vec3 viewDir = normalize(cameraDirection); // Direction to the camera
-    vec3 reflectDir = reflect(-light, normalizedTransformedNormal);  // Reflect light around the normal
-    vec3 specular = pow(max(dot(viewDir, reflectDir), 0.0), shininess) * 0.5 * lightColor;
+    mediump vec3 viewDir = normalize(cameraDirection); // Direction to the camera
+    mediump vec3 reflectDir = reflect(-light, normalizedTransformedNormal);  // Reflect light around the normal
+    mediump vec3 specular = pow(max(dot(viewDir, reflectDir), 0.0), shininess) * 0.5 * lightColor;
 
-    vec3 finalColor = ambient + diffuse + specular;
+    mediump vec3 finalColor = ambient + diffuse + specular;
 
     #ifdef ENABLE_SHADOWMAP_LEVELS
     // Adjust shadow darkness as needed
     finalColor *= mix(0.5, 1.0, computeShadow(normalizedTransformedNormal));
     #endif
 
+    fragmentObjectId = 0U;
     color = vec4(finalColor, 1.0); // Output final color with alpha
 
     //	color.rgb = vec3(0.5) + normalRaw * 0.5;

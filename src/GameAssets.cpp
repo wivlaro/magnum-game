@@ -160,10 +160,10 @@ namespace MagnumGame {
         for (auto materialId = 0U; materialId < importer.materialCount(); materialId++) {
             auto material = importer.material(materialId);
             Debug{} << "\tMaterial" << materialId << importer.materialName(materialId) << material->types();
-            for (auto attributeId = 0U; attributeId < material->attributeCount(); attributeId++) {
-                Debug{} << "\t\tattribute" << attributeId << material->attributeName(attributeId) << material->
-                        attributeType(attributeId) << material->attributeDataFlags();
-            }
+            // for (auto attributeId = 0U; attributeId < material->attributeCount(); attributeId++) {
+            //     Debug{} << "\t\tattribute" << attributeId << material->attributeName(attributeId) << material->
+            //             attributeType(attributeId) << material->attributeDataFlags();
+            // }
 
             GL::Texture2D *texture = nullptr;
             if (auto textureId = material->findAttribute<UnsignedInt>(Trade::MaterialAttribute::DiffuseTexture)) {

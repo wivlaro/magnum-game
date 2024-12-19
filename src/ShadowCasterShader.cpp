@@ -64,7 +64,11 @@ ShadowCasterShader::ShadowCasterShader(const Containers::StringView &vertFilenam
 	perVertexJointCountUniform = uniformLocation("perVertexJointCount");
 	jointMatricesUniform = uniformLocation("jointMatrices");
 
-	Debug{} << "\nSHADER " << vertFilename << " & " << fragFilename << "\nAttribute locations:\n\tposition=" << Position::Location;
+	Debug{} << "\nSHADER " << vertFilename << " & " << fragFilename << "Attribute locations:position=" << Position::Location
+	<< "Uniforms:"
+	<< "transformationMatrix=" << transformationMatrixUniform
+	<< "perVertexJointCount=" << perVertexJointCountUniform
+	<< "jointMatrices=" << jointMatricesUniform;
 }
 
 }

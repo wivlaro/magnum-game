@@ -1,4 +1,3 @@
-
 uniform highp mat4 transformationMatrix;
 uniform highp mat4 projectionMatrix;
 uniform mediump mat3 normalMatrix;
@@ -21,7 +20,7 @@ out highp vec3 shadowCoord[ENABLE_SHADOWMAP_LEVELS];
 #endif
 
 #ifdef ENABLE_MAX_ANIMATION_BONES
-uniform int perVertexJointCount;
+uniform uint perVertexJointCount;
 uniform mat4 jointMatrices[ENABLE_MAX_ANIMATION_BONES];
 
 layout(location = 6) in mediump uvec4 jointIds;
@@ -40,7 +39,7 @@ void main() {
 
     vec3 modelNormal = normal;
     #ifdef ENABLE_MAX_ANIMATION_BONES
-    if (perVertexJointCount > 0) {
+    if (perVertexJointCount > 0u) {
         mat4 skinMatrix = getSkinMatrix();
         position4 = skinMatrix * position4;
         modelNormal = mat3(skinMatrix) * normal;

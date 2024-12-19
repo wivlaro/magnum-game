@@ -82,6 +82,20 @@ if (CORRADE_TARGET_EMSCRIPTEN)
     emscripten_embed_file(MagnumGameApp ../font/Roboto-Regular.ttf /font/Roboto-Regular.ttf)
     emscripten_embed_file(MagnumGameApp ../models/characters/ /models/characters/)
     emscripten_embed_file(MagnumGameApp ../models/levels/ /models/levels/)
+    emscripten_embed_file(MagnumGameApp ../shaders/ /shaders/)
+
+#    add_custom_command(
+#            OUTPUT generated_dummy_embeds
+#            COMMAND ${CMAKE_COMMAND} -E touch generated_dummy_embeds
+#            DEPENDS ../shaders/*.vert ../shaders/*.frag ../models/characters/* ../models/levels/* ../font/Roboto-Regular.ttf
+#    )
+#
+#    add_custom_target(dummy_embed_target DEPENDS generated_dummy_embeds)
+#    add_file_dependencies()
+    file(GLOB EMBEDDED_FILES ../shaders/*.vert ../shaders/*.frag ../models/characters/* ../models/levels/* ../font/Roboto-Regular.ttf)
+    set_property(SOURCE MagnumGameApp APPEND PROPERTY OBJECT_DEPENDS ${EMBEDDED_FILES})
+
+
 
     target_link_libraries(MagnumGameApp PRIVATE
             MagnumPlugins::StbImageImporter

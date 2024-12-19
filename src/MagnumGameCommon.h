@@ -1,15 +1,27 @@
 #pragma once
 
+#include <Magnum/GL/Renderer.h>
 #include <Magnum/SceneGraph/MatrixTransformation3D.h>
+using namespace Magnum;
+using namespace Magnum::Math::Literals;
 
-#define STR(s) #s
-#define XSTR(x) STR(x)
-#define CHECK_GL_ERROR() { GL::Renderer::Error err; while ((err = GL::Renderer::error()) != GL::Renderer::Error::NoError) { Error() << (__FILE__ ":" STR(__LINE__)) << "Error: " << err; } }
+inline void CheckGLError(const char* file, const int line) {
+    static int maxLoggable = 100;
+    if (maxLoggable < 0) return;
+    GL::Renderer::Error err;
+    while ((err = GL::Renderer::error()) != GL::Renderer::Error::NoError) {
+        Error{} << file << ":" << line << "Error: " << err;
+        if (maxLoggable-- == 0) {
+            Error{} << "Logging no more errors from CheckGLError";
+            break;
+        }
+    }
+}
+
+#define CHECK_GL_ERROR() CheckGLError(__FILE__, __LINE__)
 
 #define DISALLOW_COPY(TypeName) TypeName(const TypeName&) = delete; TypeName& operator=(const TypeName&) = delete;
 
-using namespace Magnum;
-using namespace Magnum::Math::Literals;
 
 namespace MagnumGame {
 
