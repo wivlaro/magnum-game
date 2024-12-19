@@ -2,7 +2,7 @@
 // Created by Bill Robinson on 15/07/2024.
 //
 
-#include <vector>
+#include <Magnum/BulletIntegration/Integration.h>
 #include "Player.h"
 
 #include "OnGroundQuery.h"
@@ -73,7 +73,10 @@ namespace MagnumGame {
         if (!controlVector.isZero()) {
             cameraControlVector = cameraObjectMatrix.transformVector({ controlVector.x(), 0, -controlVector.y() });
             cameraControlVector.y() = 0;
-            cameraControlVector = cameraControlVector.normalized();
+            auto vectorLength = cameraControlVector.length();
+            if (vectorLength > 1) {
+                cameraControlVector /= vectorLength;
+            }
         }
         else {
             cameraControlVector = {};

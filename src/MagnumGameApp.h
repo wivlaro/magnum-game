@@ -1,5 +1,4 @@
 #pragma once
-#include <Magnum/GL/Mesh.h>
 
 #ifndef CORRADE_TARGET_EMSCRIPTEN
 #include <Magnum/Platform/Sdl2Application.h>
@@ -7,22 +6,20 @@
 #include <Magnum/Platform/EmscriptenApplication.h>
 #endif
 
-#include <map>
-#include <Corrade/Containers/StridedArrayView.h>
+#include <unordered_map>
+#include <Magnum/GL/Mesh.h>
 #include <Corrade/PluginManager/Manager.h>
 #include <Magnum/Timeline.h>
-#include <Magnum/BulletIntegration/DebugDraw.h>
 #include <Magnum/DebugTools/ResourceManager.h>
 #include <Magnum/GL/Framebuffer.h>
 #include <Magnum/GL/Renderbuffer.h>
-#include <Magnum/SceneGraph/FeatureGroup.h>
 #include <Magnum/Text/DistanceFieldGlyphCache.h>
-#include <Magnum/Shaders/DistanceFieldVectorGL.h>
 
 #include "Animator.h"
 #include "RigidBody.h"
 #include "CameraController.h"
 #include "DebugLines.h"
+#include "MagnumGameCommon.h"
 
 namespace MagnumGame {
     class UIText;
@@ -34,6 +31,7 @@ namespace MagnumGame {
     class GameAssets;
     class Animator;
     struct AnimatorAsset;
+    class SdlGameController;
 
     class MagnumGameApp : public Platform::Application {
     public:
@@ -64,8 +62,9 @@ namespace MagnumGame {
         void pointerMoveEvent(PointerMoveEvent &event) override;
         void scrollEvent(ScrollEvent &event) override;
 
-#ifdef MAGNUM_SDL2APPLICATION_MAIN
+#ifdef MAGNUMGAME_SDL
         void anyEvent(SDL_Event &event) override;
+
 #endif
 
 
@@ -95,6 +94,10 @@ namespace MagnumGame {
 
         Containers::Pointer<DebugLines> _debugLines;
         Containers::Pointer<Tweakables> _tweakables;
+
+#ifdef MAGNUMGAME_SDL
+        Containers::Pointer<SdlGameController> _gameController;
+#endif
 
         int _controllerKeysHeld;
         std::unordered_map<Long,Vector2> _pointerPressLocations{};

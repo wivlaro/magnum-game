@@ -94,11 +94,10 @@ namespace MagnumGame {
             Debug{} << "\tMesh" << meshId << ":" << meshName;
             auto meshData = importer.mesh(meshId);
 
-            for (auto attrId = 0U; attrId < meshData->attributeCount(); attrId++) {
-                auto attrName = meshData->attributeName(attrId);
-
-                // Debug{} << "\tAttribute" << attrId << ":" << attrName << "format=" << meshData->attributeFormat(attrId) << " offset=" << meshData->attributeOffset(attrId) << " stride=" << meshData->attributeStride(attrId) << " arraySize=" << meshData->attributeArraySize(attrId) << " morphTargetId=" << meshData->attributeMorphTargetId(attrId);
-            }
+            // for (auto attrId = 0U; attrId < meshData->attributeCount(); attrId++) {
+            //     auto attrName = meshData->attributeName(attrId);
+            //     Debug{} << "\tAttribute" << attrId << ":" << attrName << "format=" << meshData->attributeFormat(attrId) << " offset=" << meshData->attributeOffset(attrId) << " stride=" << meshData->attributeStride(attrId) << " arraySize=" << meshData->attributeArraySize(attrId) << " morphTargetId=" << meshData->attributeMorphTargetId(attrId);
+            // }
 
             [[maybe_unused]]
             auto &mesh = _meshes[meshId] = MeshTools::compile(*meshData);

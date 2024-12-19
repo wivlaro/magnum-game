@@ -1,6 +1,7 @@
 #pragma once
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <BulletCollision/CollisionShapes/btSphereShape.h>
+#include <Magnum/BulletIntegration/DebugDraw.h>
 
 #include "GameAssets.h"
 #include "MagnumGameApp.h"

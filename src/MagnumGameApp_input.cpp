@@ -4,8 +4,9 @@
 #include <Magnum/GL/PixelFormat.h>
 #include <Magnum/GL/Framebuffer.h>
 #include <Magnum/Image.h>
-#ifdef MAGNUM_SDL2APPLICATION_MAIN
+#ifdef MAGNUMGAME_SDL
 #include <SDL_events.h>
+#include "SdlGameController.h"
 #endif
 
 #include "GameState.h"
@@ -38,10 +39,21 @@ namespace MagnumGame {
 
 
     Vector2 MagnumGameApp::getPlayerControlVector() const {
-        return {
+        Vector2 control{
             ((_controllerKeysHeld&KEY_RIGHT)?1.0f:0.0f) - ((_controllerKeysHeld&KEY_LEFT)?1.0f:0.0f),
             ((_controllerKeysHeld&KEY_FORWARD)?1.0f:0.0f) - ((_controllerKeysHeld&KEY_BACKWARD)?1.0f:0.0f),
         };
+
+#ifdef MAGNUMGAME_SDL
+        if (_gameController) {
+            auto gameControllerVector = _gameController->getPlayerDirectionalControlVector();
+            if (!gameControllerVector.isZero()) {
+                control = gameControllerVector;
+            }
+        }
+#endif
+
+        return control;
     }
 
 
@@ -166,7 +178,14 @@ namespace MagnumGame {
     void MagnumGameApp::anyEvent(SDL_Event &event) {
         if (event.type == SDL_WINDOWEVENT_FOCUS_LOST) {
             _controllerKeysHeld = 0;
+            return ;
         }
+        if (_gameController) {
+            if (_gameController->handleEvent(event)) {
+                return;
+            }
+        }
+        Debug{} << "Unhandled SDL event" << event.type;
     }
 #endif
 }

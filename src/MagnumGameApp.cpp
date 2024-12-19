@@ -35,6 +35,10 @@
 #include "GameState.h"
 #include "UserInterface.h"
 
+#ifdef MAGNUMGAME_SDL
+#include <SDL2/SDL.h>
+#include "SdlGameController.h"
+#endif
 
 #ifdef BT_USE_DOUBLE_PRECISION
 #error sorry, this example does not support Bullet with double precision enabled
@@ -125,6 +129,11 @@ namespace MagnumGame {
         setMinimalLoopPeriod(8.0_msec);
 #endif
         _timeline.start();
+
+#ifndef CORRADE_TARGET_EMSCRIPTEN
+        SDL_Init(SDL_INIT_GAMECONTROLLER);
+        _gameController.emplace(_gameState);
+#endif
     }
 
     bool MagnumGameApp::isPlaying() {
@@ -148,6 +157,14 @@ namespace MagnumGame {
             .bind();
 
         if (isPlaying()) {
+
+#ifdef MAGNUMGAME_SDL
+            auto cameraControl = _gameController->getCameraDirectionalControlVector();
+            if (!cameraControl.isZero()) {
+                _gameState->getCamera()->rotateBy(cameraControl.x() * 90.0_degf * _timeline.previousFrameDuration(), cameraControl.y() * -90.0_degf * _timeline.previousFrameDuration());
+            }
+#endif
+
             _gameState->setControl(getPlayerControlVector());
             _gameState->update();
             updateStatusText();
@@ -207,6 +224,8 @@ namespace MagnumGame {
 
         CHECK_GL_ERROR();
     }
+
+
 }
 
 MAGNUM_APPLICATION_MAIN(MagnumGame::MagnumGameApp)

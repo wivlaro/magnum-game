@@ -53,6 +53,13 @@ add_executable(MagnumGameApp MagnumGameApp.cpp
         ShadowCasterShader.h
         ShadowCasterShader.cpp
 )
+if (NOT CORRADE_TARGET_EMSCRIPTEN)
+    target_sources(MagnumGameApp PRIVATE
+        SdlGameController.cpp
+        SdlGameController.h
+    )
+endif()
+
 target_link_libraries(MagnumGameApp PRIVATE
         Corrade::Main
         Magnum::Application

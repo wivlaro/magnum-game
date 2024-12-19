@@ -2,6 +2,13 @@
 
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/SceneGraph/MatrixTransformation3D.h>
+
+#ifndef CORRADE_TARGET_EMSCRIPTEN
+#define MAGNUMGAME_SDL
+#else
+#define MAGNUMGAME_EMSCRIPTEN
+#endif
+
 using namespace Magnum;
 using namespace Magnum::Math::Literals;
 
