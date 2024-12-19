@@ -53,6 +53,7 @@ namespace MagnumGame {
 
         void keyPressEvent(KeyEvent &event) override;
         void keyReleaseEvent(KeyEvent &event) override;
+        bool handleKeyPress(Key key, Modifiers modifiers);
 
         void pointerPressEvent(PointerEvent &event) override;
 

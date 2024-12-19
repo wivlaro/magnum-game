@@ -6,6 +6,8 @@
 #include <Magnum/Math/Vector2.h>
 #include <SDL2/SDL_gamecontroller.h>
 
+#include "MagnumGameApp.h"
+
 namespace MagnumGame {
 
     class GameState;
@@ -22,7 +24,7 @@ namespace MagnumGame {
 
         Vector2 getCameraDirectionalControlVector() const;
 
-        bool handleEvent(const SDL_Event &event);
+        bool handleEvent(const SDL_Event &event, const std::function<bool(MagnumGameApp::Key, MagnumGameApp::Modifiers)> &emulateKeyPress);
 
         static inline float JoystickDeadzone = 0.05f;
 

@@ -59,34 +59,17 @@ namespace MagnumGame {
 
     void MagnumGameApp::keyPressEvent(KeyEvent &event) {
         auto key = event.key();
-        if (_debugScreen && _debugScreen->handleKeyPress(key, event.modifiers())) {
-            event.setAccepted();
-            return;
-        }
-        if (_currentScreen && _currentScreen->handleKeyPress(key, event.modifiers())) {
-            event.setAccepted();
-            return;
-        }
+        auto modifiers = event.modifiers();
 
-        auto keyBit = getKeyBit(key);
-        if (keyBit) {
-            _controllerKeysHeld |= keyBit;
+        if (handleKeyPress(key, modifiers)) {
             event.setAccepted();
         }
-        else switch (key) {
-            case Key::Esc:
-                toPauseScreen();
+        else {
+            auto keyBit = getKeyBit(key);
+            if (keyBit) {
+                _controllerKeysHeld |= keyBit;
                 event.setAccepted();
-                break;
-            case Key::Space:
-                _gameState->getPlayer()->tryJump();
-                event.setAccepted();
-                break;
-            case Key::X:
-                _drawDebug = !_drawDebug;
-                event.setAccepted();
-                break;
-            default: break;
+            }
         }
     }
 
@@ -96,6 +79,34 @@ namespace MagnumGame {
             _controllerKeysHeld &= ~keyBit;
             event.setAccepted();
         }
+    }
+
+    bool MagnumGameApp::handleKeyPress(Key key, Modifiers modifiers) {
+        if (_debugScreen && _debugScreen->handleKeyPress(key, modifiers)) {
+            return true;
+        }
+        if (_currentScreen && _currentScreen->handleKeyPress(key, modifiers)) {
+            return true;
+        }
+
+        switch (key) {
+            case Key::Esc:
+                if (isPlaying()) {
+                    toPauseScreen();
+                }
+                else {
+                    startGame();
+                }
+                return true;
+            case Key::Space:
+                _gameState->getPlayer()->tryJump();
+                return true;
+            case Key::X:
+                _drawDebug = !_drawDebug;
+                return true;
+            default: break;
+        }
+        return false;
     }
 
     void MagnumGameApp::pointerPressEvent(PointerEvent &event) {
@@ -174,18 +185,16 @@ namespace MagnumGame {
         event.setAccepted();
     }
 
-#ifdef MAGNUM_SDL2APPLICATION_MAIN
+#ifdef MAGNUMGAME_SDL
     void MagnumGameApp::anyEvent(SDL_Event &event) {
         if (event.type == SDL_WINDOWEVENT_FOCUS_LOST) {
             _controllerKeysHeld = 0;
             return ;
         }
-        if (_gameController) {
-            if (_gameController->handleEvent(event)) {
-                return;
-            }
+        if (_gameController && _gameController->handleEvent(event, [this](Key key, Modifiers modifiers) { return handleKeyPress(key, modifiers); } )) {
+            return;
         }
-        Debug{} << "Unhandled SDL event" << event.type;
+        // Debug{} << "Unhandled SDL event" << event.type;
     }
 #endif
 }

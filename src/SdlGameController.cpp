@@ -60,7 +60,7 @@ namespace MagnumGame {
     }
 
 
-    bool SdlGameController::handleEvent(const SDL_Event &event) {
+    bool SdlGameController::handleEvent(const SDL_Event &event, const std::function<bool(MagnumGameApp::Key, MagnumGameApp::Modifiers)> &emulateKeyPress) {
         switch (event.type) {
             case SDL_CONTROLLERDEVICEADDED:
                 if (!_controller) {
@@ -76,11 +76,20 @@ namespace MagnumGame {
                 }
                 break;
             case SDL_CONTROLLERBUTTONDOWN:
-                if (event.cbutton.button == SDL_CONTROLLER_BUTTON_A) {
-                    _gameState->getPlayer()->tryJump();
-                    return true;
+                switch (event.cbutton.button) {
+                    case SDL_CONTROLLER_BUTTON_DPAD_UP:
+                        return emulateKeyPress(MagnumGameApp::Key::Up, MagnumGameApp::Modifiers{});
+                    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+                        return emulateKeyPress(MagnumGameApp::Key::Down, MagnumGameApp::Modifiers{});
+                    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+                        return emulateKeyPress(MagnumGameApp::Key::Left, MagnumGameApp::Modifiers{});
+                    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+                        return emulateKeyPress(MagnumGameApp::Key::Right, MagnumGameApp::Modifiers{});
+                    case SDL_CONTROLLER_BUTTON_A:
+                        return emulateKeyPress(MagnumGameApp::Key::Space, MagnumGameApp::Modifiers{});
+                    case SDL_CONTROLLER_BUTTON_START:
+                        return emulateKeyPress(MagnumGameApp::Key::Esc, MagnumGameApp::Modifiers{});
                 }
-                break;
         }
         return false;
     }

@@ -71,7 +71,7 @@ namespace MagnumGame {
 
 
     bool UITextButton::handleKeyPress(MagnumGameApp::Key key, MagnumGameApp::Modifiers ) {
-        if (key == MagnumGameApp::Key::Enter) {
+        if (key == MagnumGameApp::Key::Enter || key == MagnumGameApp::Key::Space) {
             if (_onClick) {
                 _onClick();
                 return true;
