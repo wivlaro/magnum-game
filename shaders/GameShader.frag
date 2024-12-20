@@ -22,7 +22,6 @@ in highp vec3 worldPos;
 uniform highp mat4 modelMatrix;
 
 layout(location = 0) out lowp vec4 color;
-layout(location = 1) out highp uint fragmentObjectId;
 
 
 #ifdef ENABLE_SHADOWMAP_LEVELS
@@ -88,7 +87,6 @@ void main() {
     finalColor *= mix(0.5, 1.0, computeShadow(normalizedTransformedNormal));
     #endif
 
-    fragmentObjectId = 0U;
     color = vec4(finalColor, 1.0); // Output final color with alpha
 
     //	color.rgb = vec3(0.5) + normalRaw * 0.5;

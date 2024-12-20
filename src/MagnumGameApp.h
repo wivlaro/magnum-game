@@ -69,10 +69,6 @@ namespace MagnumGame {
 
 #endif
 
-
-        GL::Framebuffer _framebuffer{NoCreate};
-        GL::Renderbuffer _color{NoCreate}, _objectId{NoCreate}, _depth{NoCreate};
-
         PluginManager::Manager<Text::AbstractFont> _fontManager;
 
         Containers::Pointer<UserInterface> _ui;
@@ -113,8 +109,6 @@ namespace MagnumGame {
         void startGame();
 
         void setupUserInterface();
-
-        UnsignedInt pickObjectIdAt(Vector2 eventPosition);
 
     };
 

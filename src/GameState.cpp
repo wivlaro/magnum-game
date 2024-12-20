@@ -205,20 +205,14 @@ namespace MagnumGame {
         GL::Renderer::flush();
         CHECK_GL_ERROR();
 
-        Containers::Array<Matrix4> shadowMatrices(NoInit, _shadowLight->getNumLayers());
-        for (auto layerIndex = 0u; layerIndex < _shadowLight->getNumLayers(); layerIndex++) {
-            shadowMatrices[layerIndex] = _shadowLight->getLayerMatrix(layerIndex);
-        }
         auto setupShaderForShadows = [&](GameShader* shader) {
             shader->setShadowmapTexture(_shadowLight->getShadowmapTextureArray());
             CHECK_GL_ERROR();
-            shader->setShadowmapMatrices(shadowMatrices);
+            shader->setShadowmapMatrices(_shadowLight->getShadowMatrices());
             CHECK_GL_ERROR();
-            auto& shadowCutPlanes = _shadowLight->getCutPlanes();
-            shader->setShadowCutPlanes({shadowCutPlanes.data(), shadowCutPlanes.size()});
+            shader->setShadowCutPlanes(_shadowLight->getCutPlanes());
             CHECK_GL_ERROR();
             shader->setLightVector(_cameraController->getCameraMatrix().rotationScaling() * _shadowLight->transformation()[2].xyz());
-            //				shader->setShadowmapMatrix(shadowLight->camera().projectionMatrix() * shadowLight->camera().cameraMatrix());
             CHECK_GL_ERROR();
         };
         setupShaderForShadows(&_assets.getTexturedShader());

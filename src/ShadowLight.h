@@ -22,11 +22,11 @@ public:
 
 	size_t getNumLayers() const { return _layers.size(); }
 
-	const Matrix4& getLayerMatrix(size_t layer) const { return _layers[layer].shadowMatrix; }
-
 	const auto& getCutPlanes() const { return _cutPlanes; }
 
 	GL::Texture2DArray& getShadowmapTextureArray() { return *_shadowTexture; }
+
+	Containers::ArrayView<Matrix4> getShadowMatrices() { return _shadowMatrices; }
 
 private:
 	Containers::Pointer<GL::Texture2DArray> _shadowTexture{};
@@ -39,7 +39,6 @@ private:
 	struct ShadowLayerData {
 		GL::Framebuffer shadowFramebuffer;
 		Matrix4 shadowCameraMatrix;
-		Matrix4 shadowMatrix;
 		Vector2 orthographicSize;
 		float orthographicNear, orthographicFar;
 
@@ -47,6 +46,7 @@ private:
 	};
 
 	Containers::Array<ShadowLayerData> _layers{};
+	Containers::Array<Matrix4> _shadowMatrices{};
 
 	void updateClipPlanes();
 

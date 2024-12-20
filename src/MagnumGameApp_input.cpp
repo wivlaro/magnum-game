@@ -145,22 +145,6 @@ namespace MagnumGame {
         }
     }
 
-    UnsignedInt MagnumGameApp::pickObjectIdAt(Vector2 eventPosition) {
-        const Vector2i position = eventPosition * framebufferSize() / windowSize();
-        const Vector2i fbPosition{position.x(), GL::defaultFramebuffer.viewport().sizeY() - position.y() - 1};
-
-        /* Read object ID at given click position, and then switch to the color
-           attachment again so drawEvent() blits correct buffer */
-        _framebuffer.mapForRead(GL::Framebuffer::ColorAttachment{1});
-        auto data = _framebuffer.read(
-            Range2Di::fromSize(fbPosition, {1, 1}),
-            {GL::PixelFormat::RedInteger, GL::PixelType::UnsignedInt});
-        _framebuffer.mapForRead(GL::Framebuffer::ColorAttachment{0});
-
-        // One pixel is returned as a 1x1 image
-        return data.pixels<UnsignedInt>()[0][0];
-    }
-
     void MagnumGameApp::pointerReleaseEvent(PointerEvent &event) {
         if (_pointerDrag) {
             _pointerDrag = false;
@@ -178,11 +162,6 @@ namespace MagnumGame {
                 }
             }
         }
-
-        auto objectId = pickObjectIdAt(event.position());
-        Debug{} << "Clicked objectId: " << objectId;
-
-        event.setAccepted();
     }
 
 #ifdef MAGNUMGAME_SDL

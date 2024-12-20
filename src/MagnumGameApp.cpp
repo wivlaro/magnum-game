@@ -1,5 +1,4 @@
 
-
 #include "MagnumGameApp.h"
 
 #include <btBulletDynamicsCommon.h>
@@ -59,8 +58,7 @@ namespace MagnumGame {
             const Vector2 dpiScaling = this->dpiScaling({});
             Debug{} << "DPI Scaling: " << dpiScaling;
             Configuration conf;
-            conf.setTitle("Magnum Game")
-                    .setSize({1920, 1080}, dpiScaling);
+            conf.setTitle("Magnum Game").setSize({1920, 1080}, dpiScaling);
             GLConfiguration glConf;
 #ifndef CORRADE_TARGET_EMSCRIPTEN
             glConf.setSampleCount(dpiScaling.max() < 2.0f ? 8 : 2);
@@ -70,24 +68,13 @@ namespace MagnumGame {
             }
         }
 
-        _framebuffer = GL::Framebuffer{GL::defaultFramebuffer.viewport()};
-        _color = GL::Renderbuffer{};
-        _color.setStorage(GL::RenderbufferFormat::RGBA8, GL::defaultFramebuffer.viewport().size());
-        _objectId = GL::Renderbuffer{};
-        _objectId.setStorage(GL::RenderbufferFormat::R32UI, GL::defaultFramebuffer.viewport().size());
-        _depth = GL::Renderbuffer{};
-        _depth.setStorage(GL::RenderbufferFormat::DepthComponent24, GL::defaultFramebuffer.viewport().size());
-        _framebuffer.attachRenderbuffer(GL::Framebuffer::ColorAttachment{0}, _color)
-                   .attachRenderbuffer(GL::Framebuffer::ColorAttachment{1}, _objectId)
-                   .attachRenderbuffer(GL::Framebuffer::BufferAttachment::Depth, _depth)
-                   .mapForDraw({{Shaders::GenericGL3D::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
-                                {Shaders::GenericGL3D::ObjectIdOutput, GL::Framebuffer::ColorAttachment{1}}});
-
         CHECK_GL_ERROR();
 
         GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
         GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
         GL::Renderer::enable(GL::Renderer::Feature::PolygonOffsetFill);
+        GL::Renderer::enable(GL::Renderer::Feature::Blending);
+        GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha, GL::Renderer::BlendFunction::OneMinusSourceAlpha);
         GL::Renderer::setPolygonOffset(2.0f, 0.5f);
 
         _tweakables.emplace();
@@ -150,11 +137,7 @@ namespace MagnumGame {
 
     void MagnumGameApp::drawEvent() {
 
-        _framebuffer
-            .clearColor(0, Color3{0.125f})
-            .clearColor(1, Vector4ui{})
-            .clearDepth(1.0f)
-            .bind();
+        GL::defaultFramebuffer.clear(GL::FramebufferClear::Color | GL::FramebufferClear::Depth);
 
         if (isPlaying()) {
 
@@ -172,17 +155,7 @@ namespace MagnumGame {
 
         _gameState->drawShadowBuffer();
 
-        //Object picking support
-        _framebuffer.mapForDraw({{Shaders::GenericGL3D::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
-                                {Shaders::GenericGL3D::ObjectIdOutput, GL::Framebuffer::ColorAttachment{1}}});
-        // _framebuffer.mapForDraw({{Shaders::GenericGL3D::ColorOutput, GL::Framebuffer::ColorAttachment{0}}});
-        GL::Renderer::enable(GL::Renderer::Feature::Blending);
-        GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha, GL::Renderer::BlendFunction::OneMinusSourceAlpha);
-
         _gameState->drawOpaque();
-
-        _framebuffer.mapForDraw({{Shaders::GenericGL3D::ColorOutput, GL::Framebuffer::ColorAttachment{0}},
-                                {Shaders::GenericGL3D::ObjectIdOutput,  GL::Framebuffer::DrawAttachment::None}});
 
         _gameState->drawTransparent();
 
@@ -203,8 +176,6 @@ namespace MagnumGame {
         }
 
         GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
-        GL::Renderer::enable(GL::Renderer::Feature::Blending);
-        GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha, GL::Renderer::BlendFunction::OneMinusSourceAlpha);
 
         if (_currentScreen) {
             _ui->draw(Vector2(windowSize()), *_currentScreen);
@@ -217,12 +188,10 @@ namespace MagnumGame {
 
         GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
 
-        GL::AbstractFramebuffer::blit(_framebuffer, GL::defaultFramebuffer, _framebuffer.viewport(), GL::FramebufferBlit::Color);
         swapBuffers();
+        CHECK_GL_ERROR();
         _timeline.nextFrame();
         redraw();
-
-        CHECK_GL_ERROR();
     }
 
 
