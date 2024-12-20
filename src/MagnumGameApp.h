@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Magnum/configure.h>
 #ifndef CORRADE_TARGET_EMSCRIPTEN
 #include <Magnum/Platform/Sdl2Application.h>
 #else
