@@ -70,13 +70,6 @@ namespace MagnumGame {
 
         CHECK_GL_ERROR();
 
-        GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
-        GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
-        GL::Renderer::enable(GL::Renderer::Feature::PolygonOffsetFill);
-        GL::Renderer::enable(GL::Renderer::Feature::Blending);
-        GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha, GL::Renderer::BlendFunction::OneMinusSourceAlpha);
-        GL::Renderer::setPolygonOffset(2.0f, 0.5f);
-
         _tweakables.emplace();
 
         PluginManager::Manager<Trade::AbstractImporter> manager;
@@ -86,6 +79,13 @@ namespace MagnumGame {
         _assets.emplace(*gltfImporter);
 
         setupUserInterface();
+
+        GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+        GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
+        GL::Renderer::enable(GL::Renderer::Feature::PolygonOffsetFill);
+        GL::Renderer::enable(GL::Renderer::Feature::Blending);
+        GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha, GL::Renderer::BlendFunction::OneMinusSourceAlpha);
+        GL::Renderer::setPolygonOffset(2.0f, 0.5f);
 
         _gameState.emplace(_timeline, *_assets);
         _gameState->loadLevel(*gltfImporter);
